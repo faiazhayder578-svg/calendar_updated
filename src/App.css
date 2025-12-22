@@ -1,0 +1,244 @@
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Smooth Transitions */
+* {
+  transition-property: background-color, border-color, color;
+  transition-duration: 200ms;
+  transition-timing-function: ease-in-out;
+}
+
+/* Theme Colors - Default Blue */
+.theme-default {
+  --theme-primary: #3b82f6;
+  --theme-primary-dark: #2563eb;
+  --theme-primary-light: #60a5fa;
+  --theme-secondary: #1e40af;
+  --theme-accent: #dbeafe;
+}
+
+/* Theme Colors - Purple Pride */
+.theme-purple {
+  --theme-primary: #a855f7;
+  --theme-primary-dark: #9333ea;
+  --theme-primary-light: #c084fc;
+  --theme-secondary: #7e22ce;
+  --theme-accent: #f3e8ff;
+}
+
+/* Theme Colors - Emerald Fresh */
+.theme-emerald {
+  --theme-primary: #10b981;
+  --theme-primary-dark: #059669;
+  --theme-primary-light: #34d399;
+  --theme-secondary: #047857;
+  --theme-accent: #d1fae5;
+}
+
+/* Theme Colors - Ocean Deep */
+.theme-ocean {
+  --theme-primary: #06b6d4;
+  --theme-primary-dark: #0891b2;
+  --theme-primary-light: #22d3ee;
+  --theme-secondary: #0e7490;
+  --theme-accent: #cffafe;
+}
+
+/* Theme Colors - Sunset Warm */
+.theme-sunset {
+  --theme-primary: #f97316;
+  --theme-primary-dark: #ea580c;
+  --theme-primary-light: #fb923c;
+  --theme-secondary: #c2410c;
+  --theme-accent: #ffedd5;
+}
+
+/* Theme Colors - Midnight Dark */
+.theme-midnight {
+  --theme-primary: #6366f1;
+  --theme-primary-dark: #4f46e5;
+  --theme-primary-light: #818cf8;
+  --theme-secondary: #3730a3;
+  --theme-accent: #e0e7ff;
+}
+
+/* Apply theme colors to elements */
+.theme-default .bg-slate-900,
+.theme-purple .bg-slate-900,
+.theme-emerald .bg-slate-900,
+.theme-ocean .bg-slate-900,
+.theme-sunset .bg-slate-900,
+.theme-midnight .bg-slate-900 {
+  background: linear-gradient(135deg, var(--theme-primary-dark) 0%, var(--theme-secondary) 100%) !important;
+}
+
+/* Theme button backgrounds */
+[class*="theme-"] button.bg-slate-900:not(.hover\:bg-slate-800) {
+  background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-primary-dark) 100%) !important;
+}
+
+/* Theme hover states */
+[class*="theme-"] button.bg-slate-900:hover {
+  background: linear-gradient(135deg, var(--theme-primary-dark) 0%, var(--theme-secondary) 100%) !important;
+}
+
+/* Apply to gradient buttons */
+[class*="theme-"] .bg-gradient-to-r.from-purple-600 {
+  background: linear-gradient(to right, var(--theme-primary), var(--theme-primary-light)) !important;
+}
+
+[class*="theme-"] .bg-gradient-to-r.from-purple-600:hover {
+  background: linear-gradient(to right, var(--theme-primary-dark), var(--theme-primary)) !important;
+}
+
+/* Active states */
+[class*="theme-"] .bg-slate-700 {
+  background-color: var(--theme-primary) !important;
+  opacity: 0.2;
+}
+
+/* Theme accent colors */
+[class*="theme-"] .text-slate-900:not(.hover\:text-slate-800) {
+  color: var(--theme-primary-dark) !important;
+}
+
+/* Borders with theme colors */
+[class*="theme-"] .border-slate-900 {
+  border-color: var(--theme-primary) !important;
+}
+
+/* Focus rings */
+[class*="theme-"] input:focus,
+[class*="theme-"] textarea:focus,
+[class*="theme-"] select:focus {
+  --tw-ring-color: var(--theme-primary) !important;
+}
+
+/* Sidebar active item */
+[class*="theme-"] .bg-slate-100 {
+  background-color: var(--theme-accent) !important;
+}
+
+[class*="theme-"] .bg-slate-100 * {
+  color: var(--theme-primary-dark) !important;
+}
+
+/* Card highlights with theme */
+[class*="theme-"] .bg-blue-50 {
+  background-color: var(--theme-accent) !important;
+}
+
+[class*="theme-"] .text-blue-600,
+[class*="theme-"] .text-blue-700 {
+  color: var(--theme-primary-dark) !important;
+}
+
+[class*="theme-"] .border-blue-200 {
+  border-color: var(--theme-primary-light) !important;
+}
+
+/* Status badges adapt to theme */
+[class*="theme-"] .bg-emerald-50 {
+  background-color: var(--theme-accent) !important;
+}
+
+[class*="theme-"] .text-emerald-600 {
+  color: var(--theme-primary) !important;
+}
+
+/* Dashboard cards with theme */
+[class*="theme-"] .shadow-sm:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 0 0 2px var(--theme-primary-light) !important;
+}
+
+/* Notification dots */
+[class*="theme-"] .bg-red-500 {
+  background-color: var(--theme-primary) !important;
+}
+
+/* Review stars with theme color */
+[class*="theme-"] .fill-amber-400,
+[class*="theme-"] .text-amber-400 {
+  fill: var(--theme-primary) !important;
+  color: var(--theme-primary) !important;
+}
+
+/* Calendar selected items */
+[class*="theme-"] .bg-gradient-to-r.from-emerald-50 {
+  background: linear-gradient(to right, var(--theme-accent), var(--theme-accent)) !important;
+}
+
+[class*="theme-"] .border-emerald-400 {
+  border-color: var(--theme-primary) !important;
+}
+
+/* Smooth theme transition */
+[class*="theme-"] * {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease !important;
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Pulse animation for notifications */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Loading spinner */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
