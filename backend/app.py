@@ -203,6 +203,52 @@ def upload_calendar():
         print(f"Upload error: {e}")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/academic-events", methods=["GET"])
+def get_academic_events():
+    json_filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'extracted_events.json')
+    if os.path.exists(json_filepath):
+        try:
+            with open(json_filepath, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return jsonify(data), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    return jsonify([]), 200
+
+@app.route("/api/academic-events", methods=["POST"])
+def save_academic_events():
+    try:
+        events = request.json
+        json_filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'extracted_events.json')
+        with open(json_filepath, 'w', encoding='utf-8') as f:
+            json.dump(events, f, indent=2, ensure_ascii=False)
+        return jsonify({"message": "Events saved successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/reviews", methods=["GET"])
+def get_reviews():
+    json_filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'reviews.json')
+    if os.path.exists(json_filepath):
+        try:
+            with open(json_filepath, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return jsonify(data), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    return jsonify({}), 200
+
+@app.route("/api/reviews", methods=["POST"])
+def save_reviews():
+    try:
+        reviews = request.json
+        json_filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'reviews.json')
+        with open(json_filepath, 'w', encoding='utf-8') as f:
+            json.dump(reviews, f, indent=2, ensure_ascii=False)
+        return jsonify({"message": "Reviews saved successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/api/generate-schedule", methods=["POST"])
 def generate_schedule():
     import random
@@ -221,17 +267,24 @@ def generate_schedule():
         # If we are transitioning, we might receive the old payload. 
         # Let's support the new payload structure: { instructors: [...] }
         
+        total_sections = data.get('totalSections', 1)
+        
         if not instructors:
             return jsonify({"error": "No instructor data provided"}), 400
 
         # Resources
-        rooms = ['NAC501', 'NAC502', 'LIB603', 'ENG204', 'SCI305']
+        rooms = [
+            'NAC210', 'NAC302', 'NAC411', 'NAC510', 'NAC612',
+            'SAC201', 'SAC304', 'SAC402', 'SAC505',
+            'LIB608'
+        ]
         time_slots = [
             '08:00 AM - 09:30 AM',
             '09:40 AM - 11:10 AM',
             '11:20 AM - 12:50 PM',
             '01:00 PM - 02:30 PM',
-            '02:40 PM - 04:10 PM'
+            '02:40 PM - 04:10 PM',
+            '04:20 PM - 05:50 PM'
         ]
         days = ['ST', 'MW', 'RA']
         
@@ -248,13 +301,64 @@ def generate_schedule():
             
             success = True
             
-            for inst in current_instructors:
+            # Use sequential section numbers
+            section_counter = 1
+            
+            # Helper to check if instructor is already teaching at this time in this option
+            # structure: {instructor_name: set( (day, time) ) }
+            instructor_schedules = {}
+            # Track assigned sections count
+            instructor_workload = {}
+            
+            # Track primary assigned day pattern per instructor to consolidate sections
+            instructor_primary_day = {}
+            
+            for inst in instructors:
+                name = inst.get('name')
+                instructor_schedules[name] = set()
+                instructor_workload[name] = 0
+                instructor_primary_day[name] = None
+            
+            # Queue for Round Robin distribution
+            instructor_queue = current_instructors.copy()
+            
+            # Limit iterations to prevent infinite loops if impossible to schedule
+            max_attempts = total_sections * 10 
+            attempts = 0
+            
+            while section_counter <= total_sections and attempts < max_attempts:
+                attempts += 1
+                
+                if not instructor_queue:
+                    # All instructors might be full or filtered out
+                    break
+                
+                inst = instructor_queue.pop(0) # Get next instructor
+                
+                max_sections = int(inst.get('maxSections', 3))
+                current_load = instructor_workload.get(inst.get('name'), 0)
+                
+                if current_load >= max_sections:
+                    # Skip this instructor, they are full. Do not re-add to queue.
+                    continue
+
+                # Put back at end for Round Robin (tentatively, unless we fail hard)
+                instructor_queue.append(inst)
+                
+                # Assign sequential section
+                section_num = section_counter
+                
+                # Format section as 01, 02, etc.
+                section_str = f"{section_num:02d}"
+                
                 assigned = False
                 name = inst.get('name', 'Unknown')
                 course = inst.get('courseCode', 'Unknown')
                 pref_days = inst.get('preferredDays', [])
                 pref_times = inst.get('availableTimes', [])
                 pref_room = inst.get('roomPreference', '')
+                
+                inst_schedule = instructor_schedules.get(name, set())
                 
                 # Try preferred slots first
                 possible_slots = []
@@ -264,29 +368,50 @@ def generate_schedule():
                     for t in (pref_times if pref_times else time_slots):
                         possible_slots.append((d, t, 10)) # Priority 10 (High)
                 
-                # 2. Preferred Day + Any Time (if specific times not requested)
-                if pref_days and not pref_times:
-                    for d in pref_days:
-                        for t in time_slots:
-                            possible_slots.append((d, t, 5))
-                            
-                # 3. Any Day + Preferred Time
-                if not pref_days and pref_times:
-                    for d in days:
-                        for t in pref_times:
-                            possible_slots.append((d, t, 5))
-                            
-                # 4. Fallback: All slots
-                for d in days:
-                    for t in time_slots:
-                        possible_slots.append((d, t, 1)) # Priority 1 (Low)
+                # Strict Availability Logic
+                # If preferences are provided, ONLY usage those.
+                # If NO preferences, use ALL slots.
                 
-                # Sort by priority (descending)
-                possible_slots.sort(key=lambda x: x[2], reverse=True)
+                target_days = pref_days if pref_days else days
+                target_times = pref_times if pref_times else time_slots
                 
-                # Try to find a room for these slots
-                for day_val, time_val, _ in possible_slots:
+                # Prioritize primary day if already assigned
+                primary_day = instructor_primary_day.get(name)
+                
+                tier1_slots = [] # Primary day slots
+                tier2_slots = [] # Other day slots
+                
+                for d in target_days:
+                    for t in target_times:
+                        if primary_day and d == primary_day:
+                            tier1_slots.append((d, t))
+                        else:
+                            tier2_slots.append((d, t))
+                
+                # Final order: Tier 1 then Tier 2
+                # Within Tier 1, sort by proximity to existing assigned times to minimize idle gaps
+                existing_times = [t for d, t in inst_schedule if d == primary_day]
+                if existing_times and tier1_slots:
+                    # Helper to get the index of time slots
+                    time_map = {t: i for i, t in enumerate(time_slots)}
+                    existing_indices = [time_map[t] for t in existing_times]
+                    
+                    # Sort tier1 slots by minimum distance to any existing index
+                    tier1_slots.sort(key=lambda slot: min(abs(time_map[slot[1]] - idx) for idx in existing_indices))
+                else:
+                    random.shuffle(tier1_slots)
+                
+                random.shuffle(tier2_slots)
+                
+                possible_slots = tier1_slots + tier2_slots
+                
+                # Try to find a room & time
+                for day_val, time_val in possible_slots:
                     if assigned: break
+                    
+                    # Check INSTRUCTOR conflict first
+                    if (day_val, time_val) in inst_schedule:
+                        continue # Instructor busy at this time
                     
                     # Determine room list order (pref first, then random)
                     current_rooms = rooms.copy()
@@ -297,39 +422,70 @@ def generate_schedule():
                         random.shuffle(current_rooms)
                         
                     for r in current_rooms:
-                        # Check collision
+                        # Check ROOM conflict
                         if (day_val, time_val, r) not in used_slots:
                             # Assign!
                             used_slots.add((day_val, time_val, r))
+                            inst_schedule.add((day_val, time_val)) # Mark instructor busy
+                            instructor_workload[name] = instructor_workload.get(name, 0) + 1 # Increment workload
+                            
+                            # Record primary day if not set
+                            if not instructor_primary_day[name]:
+                                instructor_primary_day[name] = day_val
+                                
                             schedule_classes.append({
                                 "courseCode": course,
-                                "section": f"{option_num:02d}", # Dummy section
+                                "section": section_str,
                                 "faculty": name,
                                 "days": day_val,
                                 "time": time_val,
                                 "room": r,
-                                "rationale": f"Matched {day_val} {time_val}" + (" (Preferred)" if (day_val in pref_days and time_val in pref_times) else "")
+                                "rationale": f"Matched {day_val} {time_val}"
                             })
                             assigned = True
                             break
                             
-                if not assigned:
-                    # Could not schedule this instructor
-                    # For now, we skip or add a "Conflict" placeholder?
-                    # Let's add with "TBD" room
-                    schedule_classes.append({
-                        "courseCode": course,
-                        "section": "XX",
-                        "faculty": name + " (CONFLICT)",
+                if assigned:
+                    section_counter += 1
+                else:
+                    # Instructor is full or blocked for all their available slots.
+                    # Remove from queue for this option so we don't waste cycles
+                    if inst in instructor_queue:
+                         # Note: inst is a dict, simple removal matches by reference/value. 
+                         # But wait, we pop(0) and append(). 
+                         # If we are here, 'inst' is currently at the END of the list (due to append)
+                         # So we should remove the last element? Or value removal?
+                         # instructor_queue.remove(inst) might remove a duplicate if present (unlikely with deep copy shuffle? actually objects are same dicts)
+                         # Safer to just pop it from end if we JUST appended it.
+                         instructor_queue.pop() # Remove the one we just added back
+                    pass
+            
+            # Post-check: If we couldn't fill all sections
+            conflict_count = 0
+            while section_counter <= total_sections:
+                 schedule_classes.append({
+                        "courseCode": "UNASSIGNED",
+                        "section": f"{section_counter:02d}",
+                        "faculty": "Unassigned (No Slots)",
                         "days": "TBD",
                         "time": "TBD",
                         "room": "TBD",
-                        "rationale": "Could not find collision-free slot"
-                    })
+                        "rationale": "Could not find valid slot for any instructor"
+                 })
+                 section_counter += 1
+                 conflict_count += 1
             
+            # Prepare Workload Summary
+            # Format: [{"name": "Dr. Smith", "count": 2}, ...]
+            workload_summary = [{"name": k, "count": v} for k, v in instructor_workload.items()]
+
             generated_schedules.append({
                 "option": option_num,
-                "classes": schedule_classes
+                "classes": schedule_classes,
+                "conflict": conflict_count > 0,
+                "conflictCount": conflict_count,
+                 "conflictMessage": f"Could not schedule {conflict_count} section(s) due to availability conflicts." if conflict_count > 0 else None,
+                 "workload": workload_summary
             })
             
         return jsonify({"schedules": generated_schedules}), 200
@@ -355,6 +511,24 @@ def add_class():
     db.session.add(item)
     db.session.commit()
     return jsonify(item.to_dict()), 201
+
+@app.route("/api/classes/bulk", methods=["POST"])
+def add_classes_bulk():
+    data = request.json
+    if not isinstance(data, list):
+        return jsonify({"error": "Expected a list of classes"}), 400
+    
+    new_items = []
+    for item_data in data:
+        # Remove any client-side generated IDs
+        if 'id' in item_data:
+            del item_data['id']
+        item = ClassItem(**item_data)
+        db.session.add(item)
+        new_items.append(item)
+    
+    db.session.commit()
+    return jsonify([i.to_dict() for i in new_items]), 201
 
 @app.route("/api/classes/<int:id>", methods=["PUT"])
 def update_class(id):

@@ -3,7 +3,7 @@ import { X, Sparkles, Plus, XCircle, Loader, CheckCircle, ChevronRight } from 'l
 
 const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, applyGeneratedSchedule }) => {
   const [instructorAvailability, setInstructorAvailability] = useState([
-    { id: 1, name: '', courseCode: '', preferredDays: [], availableTimes: [], roomPreference: '' }
+    { id: 1, name: '', courseCode: '', preferredDays: [], availableTimes: [], roomPreference: '', maxSections: 3 }
   ]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedSchedules, setGeneratedSchedules] = useState([]);
@@ -14,8 +14,11 @@ const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, appl
     '09:40 AM - 11:10 AM',
     '11:20 AM - 12:50 PM',
     '01:00 PM - 02:30 PM',
-    '02:40 PM - 04:10 PM'
+    '02:40 PM - 04:10 PM',
+    '04:20 PM - 05:50 PM'
   ];
+
+  const [totalSections, setTotalSections] = useState(1);
 
   const addInstructorSlot = () => {
     setInstructorAvailability([
@@ -26,7 +29,8 @@ const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, appl
         courseCode: '',
         preferredDays: [],
         availableTimes: [],
-        roomPreference: ''
+        roomPreference: '',
+        maxSections: 3
       }
     ]);
   };
@@ -89,7 +93,8 @@ const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, appl
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          instructors: instructorAvailability
+          instructors: instructorAvailability,
+          totalSections: parseInt(totalSections)
         })
       });
 
@@ -101,7 +106,15 @@ const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, appl
 
       if (data.schedules && data.schedules.length > 0) {
         setGeneratedSchedules(data.schedules);
-        addNotification(`Generated ${data.schedules.length} schedule options!`, 'success');
+
+        // Check for conflicts in the first option (or any option)
+        const conflictOpt = data.schedules.find(s => s.conflict);
+        if (conflictOpt) {
+          addNotification(`Warning: ${conflictOpt.conflictMessage}`, 'error');
+        } else {
+          addNotification(`Generated ${data.schedules.length} schedule options!`, 'success');
+        }
+
       } else {
         throw new Error('Invalid response format');
       }
@@ -121,7 +134,7 @@ const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, appl
   const handleClose = () => {
     setGeneratedSchedules([]);
     setInstructorAvailability([
-      { id: 1, name: '', courseCode: '', preferredDays: [], availableTimes: [], roomPreference: '' }
+      { id: 1, name: '', courseCode: '', preferredDays: [], availableTimes: [], roomPreference: '', maxSections: 3 }
     ]);
     closeModal();
   };
@@ -171,6 +184,25 @@ const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, appl
                   <p className={`text-sm ${isDarkMode ? 'text-blue-300' : 'text-blue-800'}`}>
                     💡 <strong>Tip:</strong> Provide instructor availability details for each course. The system will generate 3 optimized schedule options considering conflicts, room utilization, and preferences.
                   </p>
+                </div>
+
+                <div className={`p-4 rounded-lg border flex items-center justify-between ${isDarkMode ? 'bg-slate-700/50 border-slate-600' : 'bg-white border-slate-200'}`}>
+                  <label className={`text-sm font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                    Total Available Sections
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Start assigning from Section 1 to:</span>
+                    <input
+                      type="number"
+                      min="1"
+                      value={totalSections}
+                      onChange={(e) => setTotalSections(Math.max(1, parseInt(e.target.value) || 1))}
+                      className={`w-20 px-3 py-2 border rounded-md focus:ring-2 focus:ring-purple-500 focus:outline-none transition-all text-center font-bold ${isDarkMode
+                        ? 'bg-slate-800 border-slate-600 text-white'
+                        : 'bg-slate-50 border-slate-200 text-slate-900'
+                        }`}
+                    />
+                  </div>
                 </div>
 
                 {instructorAvailability.map((slot, index) => (
@@ -227,6 +259,23 @@ const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, appl
                     </div>
 
                     <div className="space-y-3">
+                      <div className="space-y-1.5">
+                        <label className={`text-xs font-semibold uppercase ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                          Max Sections
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="10"
+                          value={slot.maxSections}
+                          onChange={(e) => updateInstructorSlot(slot.id, 'maxSections', parseInt(e.target.value))}
+                          className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-purple-500 focus:outline-none transition-all ${isDarkMode
+                            ? 'bg-slate-700 border-slate-600 text-white'
+                            : 'bg-white border-slate-200'
+                            }`}
+                        />
+                      </div>
+
                       <div className="space-y-2">
                         <label className={`text-xs font-semibold uppercase ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
                           }`}>
@@ -367,6 +416,33 @@ const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, appl
                         <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
                           {schedule.classes.length} classes scheduled
                         </p>
+                        {schedule.conflict && (
+                          <div className="mt-2 px-3 py-1 bg-red-100 text-red-700 text-xs rounded-full inline-block font-semibold border border-red-200">
+                            ⚠️ {schedule.conflictMessage}
+                          </div>
+                        )}
+
+                        {/* Workload Summary Table */}
+                        {schedule.workload && (
+                          <div className={`mt-4 rounded-lg overflow-hidden border ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+                            <table className="w-full text-xs text-left">
+                              <thead className={`${isDarkMode ? 'bg-slate-700/50 text-slate-300' : 'bg-slate-50 text-slate-600'} border-b ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+                                <tr>
+                                  <th className="px-3 py-2 font-bold uppercase tracking-wider">Instructor</th>
+                                  <th className="px-3 py-2 font-bold uppercase tracking-wider">Sections</th>
+                                </tr>
+                              </thead>
+                              <tbody className={`divide-y ${isDarkMode ? 'divide-slate-700' : 'divide-slate-100'}`}>
+                                {schedule.workload.map((w, i) => (
+                                  <tr key={i} className={isDarkMode ? 'bg-slate-800/50' : 'bg-white'}>
+                                    <td className="px-3 py-2 font-medium">{w.name}</td>
+                                    <td className="px-3 py-2 font-bold text-indigo-500">{w.count}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
                       </div>
                       <button
                         onClick={() => handleApplySchedule(schedule)}
@@ -377,42 +453,45 @@ const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, appl
                       </button>
                     </div>
 
-                    <div className="space-y-3">
-                      {schedule.classes.map((cls, clsIdx) => (
-                        <div key={clsIdx} className={`p-3 rounded-lg ${isDarkMode ? 'bg-slate-800/50' : 'bg-white'
-                          }`}>
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                                {cls.courseCode} - Section {cls.section}
-                              </p>
-                              <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-                                {cls.faculty}
-                              </p>
-                              <div className="flex gap-3 mt-2 text-xs">
-                                <span className={`px-2 py-1 rounded ${isDarkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-700'
-                                  }`}>
+                    <div className={`mt-6 rounded-xl overflow-hidden border ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+                      <table className="w-full text-sm text-left border-collapse">
+                        <thead className={`${isDarkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-700'} border-b ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+                          <tr>
+                            <th className="px-4 py-3 font-bold uppercase tracking-wider text-xs">Course</th>
+                            <th className="px-4 py-3 font-bold uppercase tracking-wider text-xs">Section</th>
+                            <th className="px-4 py-3 font-bold uppercase tracking-wider text-xs">Instructor</th>
+                            <th className="px-4 py-3 font-bold uppercase tracking-wider text-xs">Day</th>
+                            <th className="px-4 py-3 font-bold uppercase tracking-wider text-xs">Time</th>
+                            <th className="px-4 py-3 font-bold uppercase tracking-wider text-xs">Room</th>
+                          </tr>
+                        </thead>
+                        <tbody className={`divide-y ${isDarkMode ? 'divide-slate-700' : 'divide-slate-100'}`}>
+                          {schedule.classes.map((cls, clsIdx) => (
+                            <tr
+                              key={clsIdx}
+                              className={`${isDarkMode ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50'} transition-colors ${cls.courseCode === 'UNASSIGNED' ? 'bg-red-50/50 dark:bg-red-900/10' : ''
+                                }`}
+                            >
+                              <td className={`px-4 py-3 font-bold ${cls.courseCode === 'UNASSIGNED' ? 'text-red-500' : isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                                {cls.courseCode}
+                              </td>
+                              <td className="px-4 py-3 font-medium text-indigo-500">{cls.section}</td>
+                              <td className={`px-4 py-3 ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>{cls.faculty}</td>
+                              <td className="px-4 py-3">
+                                <span className={`px-2 py-0.5 rounded text-xs font-medium ${isDarkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-700'}`}>
                                   {cls.days}
                                 </span>
-                                <span className={`px-2 py-1 rounded ${isDarkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-700'
-                                  }`}>
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className={`px-2 py-0.5 rounded text-xs font-medium ${isDarkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-700'}`}>
                                   {cls.time}
                                 </span>
-                                <span className={`px-2 py-1 rounded ${isDarkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-700'
-                                  }`}>
-                                  Room {cls.room}
-                                </span>
-                              </div>
-                            </div>
-                            {cls.rationale && (
-                              <div className={`text-xs max-w-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                                <ChevronRight className="w-3 h-3 inline" />
-                                {cls.rationale}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
+                              </td>
+                              <td className={`px-4 py-3 font-semibold ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{cls.room}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 ))}

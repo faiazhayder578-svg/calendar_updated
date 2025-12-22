@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layers, BarChart2, Calendar, Eye, LogOut, Moon, Sun, Palette, CalendarDays } from 'lucide-react';
+import { Layers, BarChart2, Calendar, Eye, LogOut, Moon, Sun, Palette, CalendarDays, MessageSquare } from 'lucide-react';
 
 const Sidebar = ({
   isStudentMode,
@@ -29,12 +29,12 @@ const Sidebar = ({
         <button
           onClick={() => setActiveView('dashboard')}
           className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${activeView === 'dashboard'
-              ? isDarkMode
-                ? 'bg-slate-700 text-white'
-                : 'bg-slate-100 text-slate-900'
-              : isDarkMode
-                ? 'text-slate-400 hover:bg-slate-700 hover:text-white'
-                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+            ? isDarkMode
+              ? 'bg-slate-700 text-white'
+              : 'bg-slate-100 text-slate-900'
+            : isDarkMode
+              ? 'text-slate-400 hover:bg-slate-700 hover:text-white'
+              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
             }`}
         >
           <BarChart2 className="w-5 h-5 mr-3 opacity-70" />
@@ -44,12 +44,12 @@ const Sidebar = ({
         <button
           onClick={() => setActiveView('schedule')}
           className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${activeView === 'schedule'
-              ? isDarkMode
-                ? 'bg-slate-700 text-white'
-                : 'bg-slate-100 text-slate-900'
-              : isDarkMode
-                ? 'text-slate-400 hover:bg-slate-700 hover:text-white'
-                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+            ? isDarkMode
+              ? 'bg-slate-700 text-white'
+              : 'bg-slate-100 text-slate-900'
+            : isDarkMode
+              ? 'text-slate-400 hover:bg-slate-700 hover:text-white'
+              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
             }`}
         >
           <Calendar className="w-5 h-5 mr-3" />
@@ -60,17 +60,35 @@ const Sidebar = ({
         <button
           onClick={() => setActiveView('calendar')}
           className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${activeView === 'calendar'
-              ? isDarkMode
-                ? 'bg-slate-700 text-white'
-                : 'bg-slate-100 text-slate-900'
-              : isDarkMode
-                ? 'text-slate-400 hover:bg-slate-700 hover:text-white'
-                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+            ? isDarkMode
+              ? 'bg-slate-700 text-white'
+              : 'bg-slate-100 text-slate-900'
+            : isDarkMode
+              ? 'text-slate-400 hover:bg-slate-700 hover:text-white'
+              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
             }`}
         >
           <CalendarDays className="w-5 h-5 mr-3" />
           Calendar View
         </button>
+
+        {/* All Reviews - ADMIN ONLY */}
+        {!isStudentMode && (
+          <button
+            onClick={() => setActiveView('reviews')}
+            className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${activeView === 'reviews'
+              ? isDarkMode
+                ? 'bg-amber-900/40 text-amber-300'
+                : 'bg-amber-50 text-amber-900'
+              : isDarkMode
+                ? 'text-slate-400 hover:bg-slate-700 hover:text-white'
+                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+              }`}
+          >
+            <MessageSquare className="w-5 h-5 mr-3 opacity-70" />
+            All Reviews
+          </button>
+        )}
 
         <div className="pt-4 pb-2 px-4">
           <p className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? 'text-slate-500' : 'text-slate-400'
@@ -80,8 +98,8 @@ const Sidebar = ({
         <button
           onClick={toggleStudentView}
           className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors group ${isDarkMode
-              ? 'text-slate-400 hover:bg-slate-700 hover:text-white'
-              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+            ? 'text-slate-400 hover:bg-slate-700 hover:text-white'
+            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
             }`}
         >
           {isStudentMode ? (
@@ -103,8 +121,8 @@ const Sidebar = ({
             addNotification(`${!isDarkMode ? 'Dark' : 'Light'} mode enabled`, 'info');
           }}
           className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors group ${isDarkMode
-              ? 'text-slate-400 hover:bg-slate-700 hover:text-white'
-              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+            ? 'text-slate-400 hover:bg-slate-700 hover:text-white'
+            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
             }`}
         >
           {isDarkMode ? (
@@ -119,8 +137,8 @@ const Sidebar = ({
         <button
           onClick={() => setShowThemeSelector(true)}
           className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors group ${isDarkMode
-              ? 'text-slate-400 hover:bg-slate-700 hover:text-white'
-              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+            ? 'text-slate-400 hover:bg-slate-700 hover:text-white'
+            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
             }`}
         >
           <Palette className="w-5 h-5 mr-3 opacity-70 group-hover:opacity-100" />
@@ -131,8 +149,8 @@ const Sidebar = ({
       <div className={`p-4 border-t ${isDarkMode ? 'border-slate-700' : 'border-slate-100'}`}>
         <div className="flex items-center gap-3">
           <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs border ${isDarkMode
-              ? 'bg-slate-700 text-slate-300 border-slate-600'
-              : 'bg-slate-200 text-slate-600 border-slate-300'
+            ? 'bg-slate-700 text-slate-300 border-slate-600'
+            : 'bg-slate-200 text-slate-600 border-slate-300'
             }`}>
             MR
           </div>
@@ -141,10 +159,10 @@ const Sidebar = ({
               M. Rezwanul Huq
             </p>
             <p className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded w-max mt-0.5 ${isStudentMode
-                ? 'bg-emerald-50 text-emerald-600'
-                : isDarkMode
-                  ? 'bg-slate-700 text-slate-400'
-                  : 'bg-slate-100 text-slate-500'
+              ? 'bg-emerald-50 text-emerald-600'
+              : isDarkMode
+                ? 'bg-slate-700 text-slate-400'
+                : 'bg-slate-100 text-slate-500'
               }`}>
               {isStudentMode ? 'Student (Preview)' : 'Administrator'}
             </p>

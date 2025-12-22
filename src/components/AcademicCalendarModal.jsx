@@ -318,27 +318,6 @@ const AcademicCalendarModal = ({ isOpen, closeModal, academicEvents, setAcademic
       }
 
       console.log('Total text extracted, length:', fullText.length);
-      console.log('Sample text:', fullText.substring(0, 500));
-
-      const extractedEvents = parsePDFText(fullText);
-      console.log('Events parsed:', extractedEvents.length);
-      console.log('Sample events:', extractedEvents.slice(0, 3));
-
-      if (extractedEvents.length > 0) {
-        const uniqueEvents = extractedEvents.filter((event, index, self) =>
-          index === self.findIndex(e =>
-            e.title.toLowerCase() === event.title.toLowerCase() &&
-            e.startDate === event.startDate
-          )
-        );
-
-        console.log('Unique events after deduplication:', uniqueEvents.length);
-        setAcademicEvents([...academicEvents, ...uniqueEvents]);
-        addNotification(`✅ NSU Academic Calendar uploaded! Successfully extracted ${uniqueEvents.length} events from PDF`, 'success');
-      } else {
-        addNotification('No events found in PDF. The PDF might not contain dates in a recognizable format. Try CSV import or manual entry.', 'error');
-        console.log('No events found. Full text sample:', fullText.substring(0, 1000));
-      }
 
       // Upload PDF to backend for storage and automatic parsing
       console.log('Uploading PDF to backend...');
@@ -354,11 +333,9 @@ const AcademicCalendarModal = ({ isOpen, closeModal, academicEvents, setAcademic
         const result = await uploadResponse.json();
         console.log('PDF uploaded to backend:', result);
 
-        // Check if backend extracted events
         if (result.eventsExtracted && result.eventsExtracted > 0 && result.events) {
           console.log(`Backend extracted ${result.eventsExtracted} events`);
 
-          // Transform backend events to calendar format
           const backendEvents = result.events.map(event => ({
             id: Date.now() + Math.random(),
             title: event.title,
@@ -368,35 +345,19 @@ const AcademicCalendarModal = ({ isOpen, closeModal, academicEvents, setAcademic
             description: event.dayOfWeek ? `Day: ${event.dayOfWeek}` : ''
           }));
 
-          // Add backend extracted events to calendar
           setAcademicEvents([...academicEvents, ...backendEvents]);
+          addNotification(`✅ NSU Academic Calendar uploaded! ${result.eventsExtracted} events added.`, 'success');
 
-          addNotification(`✅ NSU Academic Calendar PDF uploaded and parsed successfully! ${result.eventsExtracted} events added to calendar`, 'success');
-
-          // Show popup confirmation message
-          alert(`✅ NSU Academic Calendar PDF Upload Complete!\n\n${result.eventsExtracted} events have been successfully extracted and added to your calendar.`);
-
-          // Navigate to calendar view
           if (goToCalendar) {
             goToCalendar();
             closeModal();
           }
         } else {
-          addNotification('✅ NSU Academic Calendar PDF uploaded successfully!', 'success');
-
-          // Show popup confirmation message
-          alert('✅ NSU Academic Calendar PDF uploaded successfully!');
-
-          // Navigate to calendar view
-          if (goToCalendar) {
-            goToCalendar();
-            closeModal();
-          }
+          addNotification('PDF uploaded but no events were extracted.', 'info');
         }
       } else {
         const errorData = await uploadResponse.json();
-        console.error('Backend upload failed:', errorData);
-        addNotification(`Upload warning: ${errorData.error || 'Failed to save PDF to server'}`, 'info');
+        addNotification(`Upload failed: ${errorData.error || 'Server error'}`, 'error');
       }
 
 

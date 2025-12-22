@@ -12,6 +12,9 @@ import ThemeSelector from './components/ThemeSelector';
 import QRCodeGenerator from './components/QRCodeGenerator';
 import GradeCalculator from './components/GradeCalculator';
 import AcademicCalendarModal from './components/AcademicCalendarModal';
+import ConflictModal from './components/ConflictModal';
+import UnreadReviewsModal from './components/UnreadReviewsModal';
+import AllReviews from './components/AllReviews';
 import './App.css';
 
 const App = () => {
@@ -20,7 +23,8 @@ const App = () => {
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [classes, setClasses] = useState([]);
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
+  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
+
   const [activeView, setActiveView] = useState('schedule');
   const [editingClass, setEditingClass] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -41,8 +45,32 @@ const App = () => {
   const [selectedClassForAction, setSelectedClassForAction] = useState(null);
 
   // Academic Calendar states
-  const [academicEvents, setAcademicEvents] = useState([]);
+  const [academicEvents, setAcademicEventsState] = useState([]);
   const [showCalendarModal, setShowCalendarModal] = useState(false);
+  const [lastReadReviewId, setLastReadReviewId] = useState(parseInt(localStorage.getItem('lastReadReviewId') || '0'));
+  const [showUnreadModal, setShowUnreadModal] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Custom setter for academicEvents with deduplication
+  const setAcademicEvents = (newEvents) => {
+    setAcademicEventsState(prev => {
+      const combined = typeof newEvents === 'function' ? newEvents(prev) : newEvents;
+
+      // Filter out duplicate events (same title and date)
+      const uniqueEvents = combined.filter((event, index, self) =>
+        index === self.findIndex(e =>
+          e.title.toLowerCase().trim() === event.title.toLowerCase().trim() &&
+          e.startDate === event.startDate
+        )
+      );
+
+      return uniqueEvents;
+    });
+  };
+
+  // Conflict Modal State
+  const [showConflictModal, setShowConflictModal] = useState(false);
+  const [conflictDetails, setConflictDetails] = useState({ message: '', type: '' });
 
   // Load data from localStorage on mount
   useEffect(() => {
@@ -63,6 +91,20 @@ const App = () => {
     if (savedWaitlists) setWaitlists(JSON.parse(savedWaitlists));
     if (savedTheme) setCurrentTheme(savedTheme);
     if (savedEvents) setAcademicEvents(JSON.parse(savedEvents));
+
+    // Fetch classes from backend to override localStorage (Server is truth)
+    const fetchClasses = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/classes');
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.length > 0) setClasses(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch classes:', error);
+      }
+    };
+    fetchClasses();
   }, []);
 
   // Save data to localStorage
@@ -94,9 +136,124 @@ const App = () => {
     localStorage.setItem('theme', currentTheme);
   }, [currentTheme]);
 
+  // Save data to localStorage and sync academic events to backend
   useEffect(() => {
     localStorage.setItem('academicEvents', JSON.stringify(academicEvents));
+
+    // Sync to backend if there are changes and it's not the initial mount
+    const syncEvents = async () => {
+      try {
+        await fetch('http://localhost:5000/api/academic-events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(academicEvents)
+        });
+      } catch (error) {
+        console.error('Failed to sync academic events to backend:', error);
+      }
+    };
+
+    if (academicEvents.length > 0) {
+      syncEvents();
+    }
   }, [academicEvents]);
+
+  // Sync reviews to backend
+  useEffect(() => {
+    const syncReviews = async () => {
+      try {
+        await fetch('http://localhost:5000/api/reviews', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(reviews)
+        });
+      } catch (error) {
+        console.error('Failed to sync reviews to backend:', error);
+      }
+    };
+
+    if (Object.keys(reviews).length > 0) {
+      syncReviews();
+    }
+  }, [reviews]);
+
+  // Initial fetch for academic events
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/academic-events');
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.length > 0) {
+            setAcademicEvents(data);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch academic events:', error);
+      }
+    };
+    fetchEvents();
+
+    // Fetch reviews from backend
+    const fetchReviews = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/reviews');
+        if (response.ok) {
+          const data = await response.json();
+          if (data && Object.keys(data).length > 0) {
+            setReviews(data);
+
+            // Check for unread on initial load
+            const allServerReviews = Object.values(data).flat();
+            const maxServerId = Math.max(0, ...allServerReviews.map(r => r.id));
+            if (maxServerId > lastReadReviewId && !isStudentMode) {
+              const newUnreadCount = allServerReviews.filter(r => r.id > lastReadReviewId).length;
+              setUnreadCount(newUnreadCount);
+              setShowUnreadModal(true);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch reviews:', error);
+      }
+    };
+    fetchReviews();
+  }, []);
+
+  // Polling for new reviews (Admin notifications)
+  useEffect(() => {
+    const pollReviews = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/reviews');
+        if (response.ok) {
+          const data = await response.json();
+
+          // Calculate total counts
+          const allServerReviews = Object.values(data).flat();
+          const serverCount = allServerReviews.length;
+          const localCount = Object.values(reviews).flat().length;
+
+          // If server has more reviews, it means new feedback was submitted
+          if (serverCount > localCount) {
+            setReviews(data);
+
+            // Check for unread (ID based)
+            const maxServerId = Math.max(0, ...allServerReviews.map(r => r.id));
+            if (maxServerId > lastReadReviewId && !isStudentMode) {
+              const newUnreadCount = allServerReviews.filter(r => r.id > lastReadReviewId).length;
+              setUnreadCount(newUnreadCount);
+              setShowUnreadModal(true);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to poll reviews:', error);
+      }
+    };
+
+    const interval = setInterval(pollReviews, 30000); // 30 second polling
+    return () => clearInterval(interval);
+  }, [reviews, isStudentMode]);
 
   const addNotification = (message, type = 'info') => {
     const notification = {
@@ -109,18 +266,46 @@ const App = () => {
   };
 
   const checkConflict = (newClass, excludeId = null) => {
-    return classes.some(cls => {
+    // Helper to check time overlap (assuming simple string match logic for now as per current codebase)
+    // Detailed overlap logic (e.g. standardizing time formats) would be robust, 
+    // but here we check exact matches on time strings as used elsewhere.
+
+    // Check Room Conflict
+    const roomConflict = classes.find(cls => {
       if (excludeId && cls.id === excludeId) return false;
       return cls.days === newClass.days &&
         cls.time === newClass.time &&
         cls.room === newClass.room;
     });
+
+    if (roomConflict) return { conflict: true, type: 'room', message: `Conflict! Room ${newClass.room} is already booked by ${roomConflict.courseCode}.` };
+
+    // Check Instructor Conflict
+    const instructorConflict = classes.find(cls => {
+      if (excludeId && cls.id === excludeId) return false;
+      return cls.days === newClass.days &&
+        cls.time === newClass.time &&
+        cls.faculty.toLowerCase().trim() === newClass.faculty.toLowerCase().trim();
+    });
+
+    if (instructorConflict) return { conflict: true, type: 'instructor', message: `Conflict! Instructor ${newClass.faculty} is already teaching ${instructorConflict.courseCode} at this time.` };
+
+    return { conflict: false };
   };
 
   const toggleStudentView = () => {
-    setIsStudentMode(!isStudentMode);
+    const newMode = !isStudentMode;
+    setIsStudentMode(newMode);
+
+    // Set default sort by Course Code when entering student mode
+    if (newMode) {
+      setSortConfig({ key: 'courseCode', direction: 'asc' });
+    } else {
+      setSortConfig({ key: null, direction: null });
+    }
+
     addNotification(
-      !isStudentMode ? 'Switched to Student View' : 'Switched to Admin View',
+      newMode ? 'Switched to Student View' : 'Switched to Admin View',
       'info'
     );
   };
@@ -146,32 +331,77 @@ const App = () => {
   };
 
   const handleAddClass = (newClass) => {
-    if (checkConflict(newClass, editingClass?.id)) {
-      addNotification('Conflict detected! Another class is scheduled at the same time and room.', 'error');
+    const conflictCheck = checkConflict(newClass, editingClass?.id);
+    if (conflictCheck.conflict) {
+      // Show Conflict Modal instead of just a toast
+      setConflictDetails({
+        message: conflictCheck.message,
+        type: conflictCheck.type
+      });
+      setShowConflictModal(true);
       return false;
     }
 
     if (editingClass) {
-      setClasses(prev => prev.map(cls =>
-        cls.id === editingClass.id ? { ...newClass, id: cls.id } : cls
-      ));
-      addNotification(`${newClass.courseCode} updated successfully!`, 'success');
-    } else {
-      const classWithId = {
-        id: Date.now(),
-        ...newClass,
-        enrolled: 0
+      // Update on backend
+      const updateOnBackend = async () => {
+        try {
+          const response = await fetch(`http://localhost:5000/api/classes/${editingClass.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newClass)
+          });
+          if (response.ok) {
+            const updated = await response.json();
+            setClasses(prev => prev.map(cls =>
+              cls.id === editingClass.id ? updated : cls
+            ));
+            addNotification(`${newClass.courseCode} updated successfully!`, 'success');
+          }
+        } catch (error) {
+          addNotification('Failed to update class on server', 'error');
+        }
       };
-      setClasses(prev => [...prev, classWithId]);
-      addNotification(`${newClass.courseCode} added successfully!`, 'success');
+      updateOnBackend();
+    } else {
+      // Add on backend
+      const addToBackend = async () => {
+        try {
+          const response = await fetch('http://localhost:5000/api/classes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...newClass, enrolled: 0 })
+          });
+          if (response.ok) {
+            const added = await response.json();
+            setClasses(prev => [...prev, added]);
+            addNotification(`${newClass.courseCode} added successfully!`, 'success');
+          }
+        } catch (error) {
+          addNotification('Failed to add class to server', 'error');
+        }
+      };
+      addToBackend();
     }
     return true;
   };
 
   const handleDelete = (classId, courseName) => {
     if (window.confirm(`Are you sure you want to delete ${courseName}?`)) {
-      setClasses(prev => prev.filter(cls => cls.id !== classId));
-      addNotification(`${courseName} deleted successfully!`, 'success');
+      const deleteFromBackend = async () => {
+        try {
+          const response = await fetch(`http://localhost:5000/api/classes/${classId}`, {
+            method: 'DELETE'
+          });
+          if (response.ok) {
+            setClasses(prev => prev.filter(cls => cls.id !== classId));
+            addNotification(`${courseName} deleted successfully!`, 'success');
+          }
+        } catch (error) {
+          addNotification('Failed to delete class from server', 'error');
+        }
+      };
+      deleteFromBackend();
     }
   };
 
@@ -252,22 +482,39 @@ const App = () => {
 
   const handleSort = (key) => {
     let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+    // If it's a new sort by 'id' (Creation Order), default to descending (newest first)
+    if (key === 'id' && sortConfig.key !== 'id') {
+      direction = 'desc';
+    } else if (sortConfig.key === key && sortConfig.direction === 'asc') {
       direction = 'desc';
     }
     setSortConfig({ key, direction });
   };
 
   const applyGeneratedSchedule = (scheduleClasses) => {
-    const newClasses = scheduleClasses.map(cls => ({
-      id: Date.now() + Math.random(),
+    const classesToSave = scheduleClasses.map(cls => ({
       ...cls,
       maxCapacity: 35,
       enrolled: 0
     }));
 
-    setClasses(prev => [...prev, ...newClasses]);
-    addNotification(`Applied ${newClasses.length} classes from AI schedule!`, 'success');
+    const saveToBackend = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/classes/bulk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(classesToSave)
+        });
+        if (response.ok) {
+          const added = await response.json();
+          setClasses(prev => [...prev, ...added]);
+          addNotification(`Applied ${added.length} classes from AI schedule!`, 'success');
+        }
+      } catch (error) {
+        addNotification('Failed to save AI schedule to server', 'error');
+      }
+    };
+    saveToBackend();
   };
 
   return (
@@ -308,13 +555,20 @@ const App = () => {
 
         <div className="flex-1 overflow-y-auto p-8">
           {activeView === 'dashboard' ? (
-            <Dashboard classes={classes} isDarkMode={isDarkMode} />
+            <Dashboard classes={classes} reviews={reviews} isDarkMode={isDarkMode} />
           ) : activeView === 'calendar' ? (
             <CalendarView
               classes={classes}
               enrolledClasses={enrolledClasses}
               isDarkMode={isDarkMode}
               academicEvents={academicEvents}
+            />
+          ) : activeView === 'reviews' ? (
+            <AllReviews
+              reviews={reviews}
+              classes={classes}
+              isDarkMode={isDarkMode}
+              setActiveView={setActiveView}
             />
           ) : (
             <ScheduleView
@@ -335,6 +589,7 @@ const App = () => {
               setShowGradeCalc={setShowGradeCalc}
               setShowQRGenerator={setShowQRGenerator}
               setSelectedClassForAction={setSelectedClassForAction}
+              reviews={reviews}
             />
           )}
         </div>
@@ -367,8 +622,10 @@ const App = () => {
             [classId]: [...(prev[classId] || []), review]
           }));
           addNotification('Review submitted successfully!', 'success');
+          setActiveView('schedule');
         }}
         isDarkMode={isDarkMode}
+        isStudentMode={isStudentMode}
       />
 
       <WaitlistModal
@@ -417,6 +674,35 @@ const App = () => {
         isDarkMode={isDarkMode}
         addNotification={addNotification}
         goToCalendar={() => setActiveView('calendar')}
+      />
+
+      <ConflictModal
+        isOpen={showConflictModal}
+        onClose={() => setShowConflictModal(false)}
+        message={conflictDetails.message}
+        type={conflictDetails.type}
+      />
+
+      <UnreadReviewsModal
+        isOpen={showUnreadModal}
+        closeModal={() => {
+          setShowUnreadModal(false);
+          // Mark as read
+          const allReviews = Object.values(reviews).flat();
+          const maxId = Math.max(0, ...allReviews.map(r => r.id));
+          setLastReadReviewId(maxId);
+          localStorage.setItem('lastReadReviewId', maxId.toString());
+        }}
+        unreadCount={unreadCount}
+        isDarkMode={isDarkMode}
+        onView={() => {
+          setShowUnreadModal(false);
+          const allReviews = Object.values(reviews).flat();
+          const maxId = Math.max(0, ...allReviews.map(r => r.id));
+          setLastReadReviewId(maxId);
+          localStorage.setItem('lastReadReviewId', maxId.toString());
+          setActiveView('reviews');
+        }}
       />
     </div>
   );

@@ -48,24 +48,21 @@ const AddClassModal = ({ isOpen, closeModal, editingClass, handleAddClass, isDar
 
   return (
     <div className="fixed inset-0 z-50">
-      <div 
+      <div
         className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity"
         onClick={closeModal}
       />
-      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden transform transition-all scale-100 ${
-        isDarkMode ? 'bg-slate-800 shadow-slate-900' : 'bg-white shadow-slate-300'
-      }`}>
-        <div className={`px-6 py-4 border-b flex justify-between items-center ${
-          isDarkMode ? 'border-slate-700' : 'border-slate-100'
+      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden transform transition-all scale-100 ${isDarkMode ? 'bg-slate-800 shadow-slate-900' : 'bg-white shadow-slate-300'
         }`}>
+        <div className={`px-6 py-4 border-b flex justify-between items-center ${isDarkMode ? 'border-slate-700' : 'border-slate-100'
+          }`}>
           <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
             {editingClass ? 'Edit Class' : 'Add New Class Manually'}
           </h3>
-          <button 
+          <button
             onClick={closeModal}
-            className={`transition-colors ${
-              isDarkMode ? 'text-slate-400 hover:text-white' : 'text-slate-400 hover:text-slate-900'
-            }`}
+            className={`transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white' : 'text-slate-400 hover:text-slate-900'
+              }`}
           >
             <X className="w-5 h-5" />
           </button>
@@ -74,9 +71,8 @@ const AddClassModal = ({ isOpen, closeModal, editingClass, handleAddClass, isDar
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           <div className="grid grid-cols-2 gap-5">
             <div className="space-y-1.5">
-              <label className={`text-xs font-semibold uppercase tracking-wide ${
-                isDarkMode ? 'text-slate-400' : 'text-slate-500'
-              }`}>
+              <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
+                }`}>
                 Course Code
               </label>
               <input
@@ -86,40 +82,34 @@ const AddClassModal = ({ isOpen, closeModal, editingClass, handleAddClass, isDar
                 onChange={handleInputChange}
                 required
                 placeholder="e.g. CSE327"
-                className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all ${
-                  isDarkMode 
-                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-slate-500' 
-                    : 'border-slate-200 focus:border-slate-900'
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all ${isDarkMode
+                  ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-slate-500'
+                  : 'border-slate-200 focus:border-slate-900'
+                  }`}
               />
             </div>
             <div className="space-y-1.5">
-              <label className={`text-xs font-semibold uppercase tracking-wide ${
-                isDarkMode ? 'text-slate-400' : 'text-slate-500'
-              }`}>
+              <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
+                }`}>
                 Section
               </label>
-              <select
+              <input
+                type="text"
                 name="section"
                 value={formData.section}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all ${
-                  isDarkMode 
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-slate-500' 
-                    : 'bg-white border-slate-200 focus:border-slate-900'
-                }`}
-              >
-                <option value="01">01</option>
-                <option value="02">02</option>
-                <option value="10">10</option>
-              </select>
+                placeholder="e.g. 01"
+                className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all ${isDarkMode
+                  ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-slate-500'
+                  : 'bg-white border-slate-200 focus:border-slate-900'
+                  }`}
+              />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className={`text-xs font-semibold uppercase tracking-wide ${
-              isDarkMode ? 'text-slate-400' : 'text-slate-500'
-            }`}>
+            <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
+              }`}>
               Faculty Name
             </label>
             <input
@@ -129,30 +119,27 @@ const AddClassModal = ({ isOpen, closeModal, editingClass, handleAddClass, isDar
               onChange={handleInputChange}
               required
               placeholder="e.g. Dr. Rezwanul Huq"
-              className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all ${
-                isDarkMode 
-                  ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-slate-500' 
-                  : 'border-slate-200 focus:border-slate-900'
-              }`}
+              className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all ${isDarkMode
+                ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-slate-500'
+                : 'border-slate-200 focus:border-slate-900'
+                }`}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-5">
             <div className="space-y-1.5">
-              <label className={`text-xs font-semibold uppercase tracking-wide ${
-                isDarkMode ? 'text-slate-400' : 'text-slate-500'
-              }`}>
+              <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
+                }`}>
                 Days
               </label>
               <select
                 name="days"
                 value={formData.days}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all ${
-                  isDarkMode 
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-slate-500' 
-                    : 'bg-white border-slate-200 focus:border-slate-900'
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all ${isDarkMode
+                  ? 'bg-slate-700 border-slate-600 text-white focus:border-slate-500'
+                  : 'bg-white border-slate-200 focus:border-slate-900'
+                  }`}
               >
                 <option value="ST">ST (Sun-Tue)</option>
                 <option value="MW">MW (Mon-Wed)</option>
@@ -160,55 +147,50 @@ const AddClassModal = ({ isOpen, closeModal, editingClass, handleAddClass, isDar
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className={`text-xs font-semibold uppercase tracking-wide ${
-                isDarkMode ? 'text-slate-400' : 'text-slate-500'
-              }`}>
+              <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
+                }`}>
                 Time
               </label>
               <select
                 name="time"
                 value={formData.time}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all ${
-                  isDarkMode 
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-slate-500' 
-                    : 'bg-white border-slate-200 focus:border-slate-900'
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all ${isDarkMode
+                  ? 'bg-slate-700 border-slate-600 text-white focus:border-slate-500'
+                  : 'bg-white border-slate-200 focus:border-slate-900'
+                  }`}
               >
                 <option value="08:00 AM - 09:30 AM">08:00 AM - 09:30 AM</option>
                 <option value="09:40 AM - 11:10 AM">09:40 AM - 11:10 AM</option>
                 <option value="11:20 AM - 12:50 PM">11:20 AM - 12:50 PM</option>
                 <option value="01:00 PM - 02:30 PM">01:00 PM - 02:30 PM</option>
+                <option value="02:40 PM - 04:10 PM">02:40 PM - 04:10 PM</option>
+                <option value="04:20 PM - 05:50 PM">04:20 PM - 05:50 PM</option>
               </select>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-5">
             <div className="space-y-1.5">
-              <label className={`text-xs font-semibold uppercase tracking-wide ${
-                isDarkMode ? 'text-slate-400' : 'text-slate-500'
-              }`}>
+              <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
+                }`}>
                 Room
               </label>
-              <select
+              <input
+                type="text"
                 name="room"
                 value={formData.room}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all ${
-                  isDarkMode 
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-slate-500' 
-                    : 'bg-white border-slate-200 focus:border-slate-900'
-                }`}
-              >
-                <option value="NAC501">NAC501</option>
-                <option value="NAC502">NAC502</option>
-                <option value="LIB603">LIB603</option>
-              </select>
+                placeholder="e.g., NAC510, SAC302"
+                className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all ${isDarkMode
+                  ? 'bg-slate-700 border-slate-600 text-white focus:border-slate-500'
+                  : 'bg-white border-slate-200 focus:border-slate-900'
+                  }`}
+              />
             </div>
             <div className="space-y-1.5">
-              <label className={`text-xs font-semibold uppercase tracking-wide ${
-                isDarkMode ? 'text-slate-400' : 'text-slate-500'
-              }`}>
+              <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
+                }`}>
                 Max Cap
               </label>
               <input
@@ -216,22 +198,20 @@ const AddClassModal = ({ isOpen, closeModal, editingClass, handleAddClass, isDar
                 name="maxCapacity"
                 value={formData.maxCapacity}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all ${
-                  isDarkMode 
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-slate-500' 
-                    : 'border-slate-200 focus:border-slate-900'
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all ${isDarkMode
+                  ? 'bg-slate-700 border-slate-600 text-white focus:border-slate-500'
+                  : 'border-slate-200 focus:border-slate-900'
+                  }`}
               />
             </div>
           </div>
 
           <button
             type="submit"
-            className={`w-full font-bold py-3 rounded-md transition-all shadow-md mt-2 ${
-              isDarkMode
-                ? 'bg-slate-700 hover:bg-slate-600 text-white'
-                : 'bg-slate-900 hover:bg-black text-white'
-            }`}
+            className={`w-full font-bold py-3 rounded-md transition-all shadow-md mt-2 ${isDarkMode
+              ? 'bg-slate-700 hover:bg-slate-600 text-white'
+              : 'bg-slate-900 hover:bg-black text-white'
+              }`}
           >
             {editingClass ? 'Update Class' : 'Create Entry'}
           </button>
