@@ -1,5 +1,6 @@
 import React from 'react';
-import { Search, Star, Edit2, Trash2, QrCode, MessageSquare, Filter } from 'lucide-react';
+import { Search, Star, Edit2, Trash2, QrCode } from 'lucide-react';
+import { encodeSchedule } from '../utils/scheduleEncoding';
 
 
 const ScheduleView = ({
@@ -16,11 +17,10 @@ const ScheduleView = ({
   handleEnrollment,
   openModal,
   handleDelete,
-  setShowReviewsModal,
   setShowGradeCalc,
   setShowQRGenerator,
   setSelectedClassForAction,
-  reviews
+  showEncodedSchedule = false
 }) => {
   const getSortedClasses = () => {
     let sortedClasses = [...classes];
@@ -48,12 +48,21 @@ const ScheduleView = ({
 
   const getFilteredClasses = () => {
     const sorted = getSortedClasses();
+    
+    // If showEncodedSchedule is true, classes are already filtered by parent
+    // Just return sorted classes
+    if (showEncodedSchedule) {
+      return sorted;
+    }
+    
     if (!searchQuery) return sorted;
 
     return sorted.filter(cls =>
       cls.courseCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
       cls.faculty.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      cls.room.toLowerCase().includes(searchQuery.toLowerCase())
+      cls.room.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      cls.days.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      cls.time.toLowerCase().includes(searchQuery.toLowerCase())
     );
   };
 
@@ -73,31 +82,32 @@ const ScheduleView = ({
       ? 'bg-slate-800 border-slate-700'
       : 'bg-white border-slate-200'
       }`}>
-      {/* Search Bar */}
-      <div className={`p-5 border-b flex justify-between items-center ${isDarkMode ? 'border-slate-700' : 'border-slate-100'
-        }`}>
-        <h3 className={`text-base font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'
+      {/* Search Bar - Hide in student mode when using external search */}
+      {!showEncodedSchedule && (
+        <div className={`p-5 border-b flex justify-between items-center ${isDarkMode ? 'border-slate-700' : 'border-slate-100'
           }`}>
-          {isStudentMode ? 'Course Catalog' : 'Manage Courses'}
-          {isStudentMode && favorites.length > 0 && (
-            <span className={`ml-3 text-xs px-2 py-1 rounded-full ${isDarkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'
-              }`}>
-              {favorites.length} favorites
-            </span>
-          )}
-        </h3>
-        <div className="flex items-center gap-3">
-          <div className="relative group flex items-center gap-2">
-            <label className={`text-xs font-semibold uppercase tracking-wider ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-              Sort:
-            </label>
-            <select
-              value={sortConfig.key || (isStudentMode ? 'courseCode' : 'id')}
-              onChange={(e) => handleSort(e.target.value)}
-              className={`pl-3 pr-8 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 appearance-none bg-no-repeat bg-[right_0.5rem_center] transition-all ${isDarkMode
-                ? 'bg-slate-700 border-slate-600 text-white focus:bg-slate-600'
-                : 'bg-slate-50 border-slate-200 focus:bg-white'
-                }`}
+          <h3 className={`text-base font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'
+            }`}>
+            {isStudentMode ? 'Course Catalog' : 'Manage Courses'}
+            {isStudentMode && favorites.length > 0 && (
+              <span className={`ml-3 text-xs px-2 py-1 rounded-full ${isDarkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'
+                }`}>
+                {favorites.length} favorites
+              </span>
+            )}
+          </h3>
+          <div className="flex items-center gap-3">
+            <div className="relative group flex items-center gap-2">
+              <label className={`text-xs font-semibold uppercase tracking-wider ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                Sort:
+              </label>
+              <select
+                value={sortConfig.key || (isStudentMode ? 'courseCode' : 'id')}
+                onChange={(e) => handleSort(e.target.value)}
+                className={`pl-3 pr-8 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 appearance-none bg-no-repeat bg-[right_0.5rem_center] transition-all ${isDarkMode
+                  ? 'bg-slate-700 border-slate-600 text-white focus:bg-slate-600'
+                  : 'bg-slate-50 border-slate-200 focus:bg-white'
+                  }`}
               style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7' /%3E%3C/svg%3E")`, backgroundSize: '1rem' }}
             >
               {isStudentMode ? (
@@ -132,14 +142,45 @@ const ScheduleView = ({
           </div>
         </div>
       </div>
+      )}
 
-      {/* Student Info Banner */}
-      {isStudentMode && (
+      {/* Student Info Banner - Hide in student mode when using external search */}
+      {isStudentMode && !showEncodedSchedule && (
         <div className={`px-5 py-3 border-b ${isDarkMode ? 'bg-blue-900/20 border-slate-700' : 'bg-blue-50 border-blue-100'
           }`}>
           <p className={`text-sm ${isDarkMode ? 'text-blue-300' : 'text-blue-700'}`}>
-            📖 <strong>Student View:</strong> Browse courses and write reviews. Contact administration for enrollment.
+            Browse courses. Contact administration for enrollment.
           </p>
+        </div>
+      )}
+
+      {/* Table Header for Student View with Encoding */}
+      {showEncodedSchedule && (
+        <div className={`p-4 border-b flex justify-between items-center ${isDarkMode ? 'border-slate-700' : 'border-slate-100'}`}>
+          <h3 className={`text-base font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
+            Course Catalog
+            <span className={`ml-3 text-xs px-2 py-1 rounded-full ${isDarkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+              {classes.length} courses
+            </span>
+          </h3>
+          <div className="flex items-center gap-2">
+            <label className={`text-xs font-semibold uppercase tracking-wider ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+              Sort:
+            </label>
+            <select
+              value={sortConfig.key || 'courseCode'}
+              onChange={(e) => handleSort(e.target.value)}
+              className={`pl-3 pr-8 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-500 ${isDarkMode
+                ? 'bg-slate-700 border-slate-600 text-white'
+                : 'bg-slate-50 border-slate-200'
+              }`}
+            >
+              <option value="courseCode">Course Code</option>
+              <option value="faculty">Instructor</option>
+              <option value="room">Room</option>
+              <option value="time">Schedule</option>
+            </select>
+          </div>
         </div>
       )}
 
@@ -197,16 +238,21 @@ const ScheduleView = ({
               <th
                 className={`px-6 py-4 transition-colors cursor-pointer ${isDarkMode ? 'hover:text-slate-300' : 'hover:text-slate-800'
                   }`}
+                onClick={() => handleSort('days')}
+              >
+                Days {sortConfig.key === 'days' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+              </th>
+              <th
+                className={`px-6 py-4 transition-colors cursor-pointer ${isDarkMode ? 'hover:text-slate-300' : 'hover:text-slate-800'
+                  }`}
                 onClick={() => handleSort('time')}
               >
                 Time {sortConfig.key === 'time' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
               </th>
               <th
-                className={`px-6 py-4 transition-colors cursor-pointer ${isDarkMode ? 'hover:text-slate-300' : 'hover:text-slate-800'
-                  }`}
-                onClick={() => handleSort('days')}
+                className={`px-6 py-4 transition-colors ${isDarkMode ? 'hover:text-slate-300' : 'hover:text-slate-800'}`}
               >
-                Days {sortConfig.key === 'days' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                Code
               </th>
               <th
                 className={`px-6 py-4 transition-colors cursor-pointer ${isDarkMode ? 'hover:text-slate-300' : 'hover:text-slate-800'
@@ -224,11 +270,11 @@ const ScheduleView = ({
             }`}>
             {getFilteredClasses().length === 0 ? (
               <tr>
-                <td colSpan={isStudentMode ? "9" : "10"} className={`px-6 py-8 text-center ${isDarkMode ? 'text-slate-400' : 'text-slate-400'
+                <td colSpan="11" className={`px-6 py-8 text-center ${isDarkMode ? 'text-slate-400' : 'text-slate-400'
                   }`}>
                   {isStudentMode
                     ? 'No classes available in the catalog.'
-                    : 'No classes found. Click "Add Class" to add manually or use "AI Schedule" to generate automatically.'
+                    : 'No classes found. Click "Add Class" to add a new course.'
                   }
                 </td>
               </tr>
@@ -271,54 +317,20 @@ const ScheduleView = ({
                   <td className="px-6 py-4">{cls.section}</td>
                   <td className="px-6 py-4">{cls.faculty}</td>
                   <td className="px-6 py-4">{cls.room}</td>
-                  <td className="px-6 py-4">{cls.time}</td>
                   <td className="px-6 py-4">{cls.days}</td>
+                  <td className="px-6 py-4">{cls.time}</td>
+                  <td className="px-6 py-4">
+                    <span className={`font-mono font-bold text-base ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                      {encodeSchedule(cls.days, cls.time)}
+                    </span>
+                  </td>
                   <td className="px-6 py-4">
                     {getStatusBadge(cls.enrolled, cls.maxCapacity)}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
-                      {isStudentMode ? (
+                      {!isStudentMode && (
                         <>
-                          {/* STUDENT: Write Review Button */}
-                          <button
-                            onClick={() => {
-                              setSelectedClassForAction(cls);
-                              setShowReviewsModal(true);
-                            }}
-                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${isDarkMode
-                              ? 'bg-amber-900/30 text-amber-300 hover:bg-amber-900/50 border border-amber-700'
-                              : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
-                              }`}
-                            title="Write or view reviews"
-                          >
-                            <MessageSquare className="w-3.5 h-3.5" />
-                            <span>Review</span>
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          {/* ADMIN: View Reviews Button */}
-                          <button
-                            onClick={() => {
-                              setSelectedClassForAction(cls);
-                              setShowReviewsModal(true);
-                            }}
-                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${isDarkMode
-                              ? 'bg-amber-900/30 text-amber-300 hover:bg-amber-900/50 border border-amber-700'
-                              : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
-                              }`}
-                            title="View student reviews"
-                          >
-                            <MessageSquare className="w-3.5 h-3.5" />
-                            <span>Reviews</span>
-                            {reviews[cls.id]?.length > 0 && (
-                              <span className="bg-amber-500 text-white text-[10px] px-1 rounded-full">
-                                {reviews[cls.id].length}
-                              </span>
-                            )}
-                          </button>
-
                           {/* ADMIN: Edit Button */}
                           <button
                             onClick={() => openModal(cls)}

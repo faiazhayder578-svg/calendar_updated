@@ -1,5 +1,4 @@
-import React from 'react';
-import { Layers, BarChart2, Calendar, Eye, LogOut, Moon, Sun, Palette, CalendarDays, MessageSquare } from 'lucide-react';
+import { Layers, BarChart2, Calendar, Eye, LogOut, Moon, Sun, Palette, CalendarDays, Lock, User, Users } from 'lucide-react';
 
 const Sidebar = ({
   isStudentMode,
@@ -9,7 +8,10 @@ const Sidebar = ({
   toggleStudentView,
   setIsDarkMode,
   addNotification,
-  setShowThemeSelector
+  setShowThemeSelector,
+  currentUser,
+  onLogout,
+  onChangePassword
 }) => {
   return (
     <aside className={`w-64 border-r flex flex-col z-20 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-colors duration-300 ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
@@ -20,7 +22,7 @@ const Sidebar = ({
           <div className={`p-1.5 rounded-md ${isDarkMode ? 'bg-slate-700' : 'bg-slate-900'} text-white`}>
             <Layers className="w-5 h-5" />
           </div>
-          <span className="text-lg font-bold tracking-tight">Scheduler</span>
+          <span className="text-lg font-bold tracking-tight">NSU Class Scheduler</span>
         </div>
       </div>
 
@@ -56,6 +58,24 @@ const Sidebar = ({
           Class Schedule
         </button>
 
+        {/* Instructor Availability - Admin Only */}
+        {!isStudentMode && (
+          <button
+            onClick={() => setActiveView('instructors')}
+            className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${activeView === 'instructors'
+              ? isDarkMode
+                ? 'bg-slate-700 text-white'
+                : 'bg-slate-100 text-slate-900'
+              : isDarkMode
+                ? 'text-slate-400 hover:bg-slate-700 hover:text-white'
+                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+              }`}
+          >
+            <Users className="w-5 h-5 mr-3" />
+            Instructor Availability
+          </button>
+        )}
+
         {/* Calendar View */}
         <button
           onClick={() => setActiveView('calendar')}
@@ -71,24 +91,6 @@ const Sidebar = ({
           <CalendarDays className="w-5 h-5 mr-3" />
           Calendar View
         </button>
-
-        {/* All Reviews - ADMIN ONLY */}
-        {!isStudentMode && (
-          <button
-            onClick={() => setActiveView('reviews')}
-            className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${activeView === 'reviews'
-              ? isDarkMode
-                ? 'bg-amber-900/40 text-amber-300'
-                : 'bg-amber-50 text-amber-900'
-              : isDarkMode
-                ? 'text-slate-400 hover:bg-slate-700 hover:text-white'
-                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-              }`}
-          >
-            <MessageSquare className="w-5 h-5 mr-3 opacity-70" />
-            All Reviews
-          </button>
-        )}
 
         <div className="pt-4 pb-2 px-4">
           <p className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? 'text-slate-500' : 'text-slate-400'
@@ -144,6 +146,38 @@ const Sidebar = ({
           <Palette className="w-5 h-5 mr-3 opacity-70 group-hover:opacity-100" />
           <span>Custom Themes</span>
         </button>
+
+        {/* Admin Settings */}
+        {!isStudentMode && (
+          <>
+            <div className="pt-4 pb-2 px-4">
+              <p className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? 'text-slate-500' : 'text-slate-400'
+                }`}>Account</p>
+            </div>
+
+            <button
+              onClick={onChangePassword}
+              className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors group ${isDarkMode
+                ? 'text-slate-400 hover:bg-slate-700 hover:text-white'
+                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+            >
+              <Lock className="w-5 h-5 mr-3 opacity-70 group-hover:opacity-100" />
+              <span>Change Password</span>
+            </button>
+
+            <button
+              onClick={onLogout}
+              className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors group ${isDarkMode
+                ? 'text-red-400 hover:bg-red-900/20 hover:text-red-300'
+                : 'text-red-600 hover:bg-red-50 hover:text-red-700'
+                }`}
+            >
+              <LogOut className="w-5 h-5 mr-3 opacity-70 group-hover:opacity-100" />
+              <span>Logout</span>
+            </button>
+          </>
+        )}
       </nav>
 
       <div className={`p-4 border-t ${isDarkMode ? 'border-slate-700' : 'border-slate-100'}`}>
@@ -152,11 +186,11 @@ const Sidebar = ({
             ? 'bg-slate-700 text-slate-300 border-slate-600'
             : 'bg-slate-200 text-slate-600 border-slate-300'
             }`}>
-            MR
+            <User className="w-5 h-5" />
           </div>
           <div>
             <p className={`text-sm font-semibold ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>
-              M. Rezwanul Huq
+              {currentUser?.username || 'Admin'}
             </p>
             <p className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded w-max mt-0.5 ${isStudentMode
               ? 'bg-emerald-50 text-emerald-600'

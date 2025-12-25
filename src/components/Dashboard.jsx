@@ -53,7 +53,6 @@ const Dashboard = ({ classes, reviews = {}, isDarkMode }) => {
   };
 
   const stats = getDashboardStats();
-  const recentReviews = getRecentReviews();
 
   return (
     <div className="space-y-6 pb-8">
@@ -121,30 +120,9 @@ const Dashboard = ({ classes, reviews = {}, isDarkMode }) => {
             </div>
           </div>
         </div>
-
-        <div className={`rounded-xl shadow-sm border p-6 transition-all hover:shadow-md ${isDarkMode
-          ? 'bg-slate-800 border-slate-700'
-          : 'bg-white border-slate-200'
-          }`}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className={`text-sm font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
-                }`}>
-                Total Reviews
-              </p>
-              <p className={`text-3xl font-bold mt-2 ${isDarkMode ? 'text-white' : 'text-slate-900'
-                }`}>
-                {stats.totalReviews}
-              </p>
-            </div>
-            <div className="p-3 bg-purple-100 rounded-lg">
-              <MessageSquare className="w-6 h-6 text-purple-600" />
-            </div>
-          </div>
-        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         {/* Popular Courses */}
         <div className={`rounded-xl shadow-sm border overflow-hidden ${isDarkMode
           ? 'bg-slate-800 border-slate-700'
@@ -196,59 +174,6 @@ const Dashboard = ({ classes, reviews = {}, isDarkMode }) => {
                           style={{ width: `${(cls.enrolled / cls.maxCapacity) * 100}%` }}
                         />
                       </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Latest Student Feedback */}
-        <div className={`rounded-xl shadow-sm border overflow-hidden ${isDarkMode
-          ? 'bg-slate-800 border-slate-700'
-          : 'bg-white border-slate-200'
-          }`}>
-          <div className={`p-5 border-b flex justify-between items-center ${isDarkMode ? 'border-slate-700 bg-slate-800/50' : 'border-slate-100 bg-slate-50/50'
-            }`}>
-            <h3 className={`text-base font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'
-              }`}>
-              Latest Student Feedback
-            </h3>
-            <MessageSquare className="w-4 h-4 text-slate-400" />
-          </div>
-          <div className="p-5">
-            {recentReviews.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <MessageSquare className="w-6 h-6 text-slate-400" />
-                </div>
-                <p className={`${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                  No student reviews yet
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {recentReviews.map((rev) => (
-                  <div key={rev.id} className={`p-3 rounded-lg border flex gap-3 transition-colors hover:border-amber-300 ${isDarkMode ? 'bg-slate-700/30 border-slate-600' : 'bg-slate-50 border-slate-100'
-                    }`}>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start mb-1">
-                        <p className={`text-sm font-bold truncate ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                          {rev.courseCode}
-                        </p>
-                        <div className="flex gap-0.5">
-                          {[1, 2, 3, 4, 5].map(star => (
-                            <TrendingUp key={star} className={`w-3 h-3 ${star <= rev.rating ? 'text-amber-400 fill-amber-400' : 'text-slate-300'}`} />
-                          ))}
-                        </div>
-                      </div>
-                      <p className={`text-xs italic line-clamp-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-                        "{rev.text}"
-                      </p>
-                      <p className={`text-[10px] mt-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
-                        — {rev.reviewer} • {rev.date}
-                      </p>
                     </div>
                   </div>
                 ))}

@@ -1,18 +1,31 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, session
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import time
 import json
 import PyPDF2
 import re
+import secrets
 
 app = Flask(__name__)
-CORS(app)
+
+# CORS configuration with explicit settings
+CORS(app, 
+     supports_credentials=True,
+     origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5000", "http://127.0.0.1:5000"],
+     allow_headers=["Content-Type"],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///scheduler.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", secrets.token_hex(32))
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_SECURE"] = False  # Set to True in production with HTTPS
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["PERMANENT_SESSION_LIFETIME"] = 3600  # 1 hour session lifetime
 
 # File upload configuration
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
@@ -24,6 +37,65 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 db = SQLAlchemy(app)
+
+# Add CORS headers to all responses
+@app.after_request
+def after_request(response):
+    origin = request.headers.get('Origin')
+    if origin in ["http://localhost:5173", "http://127.0.0.1:5173"]:
+        response.headers.add('Access-Control-Allow-Origin', origin)
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+    return response
+
+class AdminUser(db.Model):
+    __tablename__ = 'admin_user'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+    def set_password(self, password):
+        """Hash and set the password"""
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        """Verify password against hash"""
+        return check_password_hash(self.password_hash, password)
+
+    def to_dict(self):
+        """Return safe dictionary without password"""
+        return {
+            "id": self.id,
+            "username": self.username,
+            "created_at": self.created_at.isoformat() if self.created_at else None
+        }
+
+class InstructorTimetable(db.Model):
+    __tablename__ = 'instructor_timetable'
+    id = db.Column(db.Integer, primary_key=True)
+    instructor_name = db.Column(db.String(100), nullable=False)
+    days = db.Column(db.String(50), nullable=False)
+    time_slot = db.Column(db.String(50), nullable=False)
+    course_code = db.Column(db.String(50), nullable=True)
+    section = db.Column(db.String(20), nullable=True)
+    room = db.Column(db.String(50), nullable=True)
+    is_available = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "instructorName": self.instructor_name,
+            "days": self.days,
+            "timeSlot": self.time_slot,
+            "courseCode": self.course_code,
+            "section": self.section,
+            "room": self.room,
+            "isAvailable": self.is_available,
+            "createdAt": self.created_at.isoformat() if self.created_at else None
+        }
 
 class ClassItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -223,29 +295,6 @@ def save_academic_events():
         with open(json_filepath, 'w', encoding='utf-8') as f:
             json.dump(events, f, indent=2, ensure_ascii=False)
         return jsonify({"message": "Events saved successfully"}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route("/api/reviews", methods=["GET"])
-def get_reviews():
-    json_filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'reviews.json')
-    if os.path.exists(json_filepath):
-        try:
-            with open(json_filepath, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                return jsonify(data), 200
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
-    return jsonify({}), 200
-
-@app.route("/api/reviews", methods=["POST"])
-def save_reviews():
-    try:
-        reviews = request.json
-        json_filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'reviews.json')
-        with open(json_filepath, 'w', encoding='utf-8') as f:
-            json.dump(reviews, f, indent=2, ensure_ascii=False)
-        return jsonify({"message": "Reviews saved successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -494,10 +543,146 @@ def generate_schedule():
         print(f"Algorithm Error: {e}")
         return jsonify({"error": str(e)}), 500
 
+def seed_admin_users():
+    """Seed default admin accounts if they don't exist"""
+    default_admins = [
+        {"username": "admin1", "password": "Admin@123"},
+        {"username": "admin2", "password": "Admin@456"},
+        {"username": "admin3", "password": "Admin@789"},
+        {"username": "admin4", "password": "Admin@000"}
+    ]
+    
+    seeded_count = 0
+    for admin_data in default_admins:
+        existing = AdminUser.query.filter_by(username=admin_data["username"]).first()
+        if not existing:
+            admin = AdminUser(username=admin_data["username"])
+            admin.set_password(admin_data["password"])
+            db.session.add(admin)
+            seeded_count += 1
+    
+    if seeded_count > 0:
+        db.session.commit()
+    
+    return seeded_count
+
 @app.route("/api/init", methods=["POST"])
 def init_db():
     db.create_all()
-    return jsonify({"message": "Database created"}), 200
+    seeded = seed_admin_users()
+    return jsonify({
+        "message": "Database created",
+        "adminsSeeded": seeded
+    }), 200
+
+@app.route("/api/auth/login", methods=["POST"])
+def login():
+    """Admin login endpoint"""
+    try:
+        data = request.json
+        username = data.get("username")
+        password = data.get("password")
+        
+        print(f"Login attempt for username: {username}")
+        print(f"Request origin: {request.headers.get('Origin')}")
+        print(f"Request cookies before login: {request.cookies}")
+        
+        if not username or not password:
+            print("Missing username or password")
+            return jsonify({"error": "Username and password are required"}), 400
+        
+        admin = AdminUser.query.filter_by(username=username).first()
+        
+        if not admin:
+            print(f"Admin not found: {username}")
+            return jsonify({"error": "Invalid credentials"}), 401
+        
+        if not admin.check_password(password):
+            print(f"Invalid password for: {username}")
+            return jsonify({"error": "Invalid credentials"}), 401
+        
+        # Set session
+        session.clear()  # Clear any existing session first
+        session["admin_id"] = admin.id
+        session["username"] = admin.username
+        session.modified = True  # Ensure session is marked as modified
+        session.permanent = True  # Make session permanent
+        
+        print(f"Login successful for: {username}")
+        print(f"Session after login: {dict(session)}")
+        print(f"Session ID: {session.sid if hasattr(session, 'sid') else 'N/A'}")
+        
+        response = jsonify({
+            "message": "Login successful",
+            "user": admin.to_dict()
+        })
+        
+        print(f"Response headers will include session cookie")
+        return response, 200
+        
+    except Exception as e:
+        print(f"Login error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/auth/logout", methods=["POST"])
+def logout():
+    """Admin logout endpoint"""
+    session.clear()
+    return jsonify({"message": "Logout successful"}), 200
+
+@app.route("/api/auth/check", methods=["GET"])
+def check_auth():
+    """Check if user is authenticated"""
+    print(f"Auth check called. Session data: {dict(session)}")
+    print(f"Session has admin_id: {'admin_id' in session}")
+    
+    if "admin_id" in session:
+        admin = AdminUser.query.get(session["admin_id"])
+        if admin:
+            print(f"Auth check: User authenticated - {admin.username}")
+            return jsonify({
+                "authenticated": True,
+                "user": admin.to_dict()
+            }), 200
+        else:
+            print(f"Auth check: Admin ID in session but user not found")
+    else:
+        print("Auth check: No admin_id in session")
+    
+    return jsonify({"authenticated": False}), 200
+
+@app.route("/api/auth/change-password", methods=["POST"])
+def change_password():
+    """Change admin password"""
+    try:
+        data = request.json
+        username = data.get("username")
+        current_password = data.get("currentPassword")
+        new_password = data.get("newPassword")
+        
+        if not username or not current_password or not new_password:
+            return jsonify({"error": "Username, current and new passwords are required"}), 400
+        
+        if len(new_password) < 6:
+            return jsonify({"error": "New password must be at least 6 characters"}), 400
+        
+        admin = AdminUser.query.filter_by(username=username).first()
+        
+        if not admin:
+            return jsonify({"error": "User not found"}), 404
+        
+        if not admin.check_password(current_password):
+            return jsonify({"error": "Current password is incorrect"}), 401
+        
+        admin.set_password(new_password)
+        db.session.commit()
+        
+        return jsonify({"message": "Password changed successfully"}), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/api/classes", methods=["GET"])
 def get_classes():
@@ -510,7 +695,38 @@ def add_class():
     item = ClassItem(**data)
     db.session.add(item)
     db.session.commit()
+    
+    # Update instructor timetable
+    update_instructor_timetable(item.faculty, item.days, item.time, item.courseCode, item.section, item.room)
+    
     return jsonify(item.to_dict()), 201
+
+def update_instructor_timetable(instructor_name, days, time_slot, course_code, section, room):
+    """Update or create instructor timetable entry"""
+    existing = InstructorTimetable.query.filter_by(
+        instructor_name=instructor_name,
+        days=days,
+        time_slot=time_slot
+    ).first()
+    
+    if existing:
+        existing.course_code = course_code
+        existing.section = section
+        existing.room = room
+        existing.is_available = False
+    else:
+        entry = InstructorTimetable(
+            instructor_name=instructor_name,
+            days=days,
+            time_slot=time_slot,
+            course_code=course_code,
+            section=section,
+            room=room,
+            is_available=False
+        )
+        db.session.add(entry)
+    
+    db.session.commit()
 
 @app.route("/api/classes/bulk", methods=["POST"])
 def add_classes_bulk():
@@ -528,12 +744,22 @@ def add_classes_bulk():
         new_items.append(item)
     
     db.session.commit()
+    
+    # Update instructor timetables
+    for item in new_items:
+        update_instructor_timetable(item.faculty, item.days, item.time, item.courseCode, item.section, item.room)
+    
     return jsonify([i.to_dict() for i in new_items]), 201
 
 @app.route("/api/classes/<int:id>", methods=["PUT"])
 def update_class(id):
     item = ClassItem.query.get_or_404(id)
     data = request.json
+    
+    # Store old values for timetable cleanup
+    old_faculty = item.faculty
+    old_days = item.days
+    old_time = item.time
 
     item.courseCode = data.get("courseCode", item.courseCode)
     item.section = data.get("section", item.section)
@@ -545,14 +771,139 @@ def update_class(id):
     item.enrolled = int(data.get("enrolled", item.enrolled))
 
     db.session.commit()
+    
+    # Update instructor timetables
+    # Free up old slot if instructor/time changed
+    if old_faculty != item.faculty or old_days != item.days or old_time != item.time:
+        free_instructor_slot(old_faculty, old_days, old_time)
+    
+    # Book new slot
+    update_instructor_timetable(item.faculty, item.days, item.time, item.courseCode, item.section, item.room)
+    
     return jsonify(item.to_dict()), 200
+
+def free_instructor_slot(instructor_name, days, time_slot):
+    """Free up an instructor's time slot"""
+    entry = InstructorTimetable.query.filter_by(
+        instructor_name=instructor_name,
+        days=days,
+        time_slot=time_slot
+    ).first()
+    
+    if entry:
+        # Check if any other class uses this slot
+        other_class = ClassItem.query.filter_by(
+            faculty=instructor_name,
+            days=days,
+            time=time_slot
+        ).first()
+        
+        if not other_class:
+            entry.is_available = True
+            entry.course_code = None
+            entry.section = None
+            entry.room = None
+            db.session.commit()
 
 @app.route("/api/classes/<int:id>", methods=["DELETE"])
 def delete_class(id):
     item = ClassItem.query.get_or_404(id)
+    
+    # Store values before deletion
+    faculty = item.faculty
+    days = item.days
+    time = item.time
+    
     db.session.delete(item)
     db.session.commit()
+    
+    # Free up instructor slot
+    free_instructor_slot(faculty, days, time)
+    
     return jsonify({"message": "Deleted"}), 200
+
+@app.route("/api/instructor-availability/<instructor_name>", methods=["GET"])
+def get_instructor_availability(instructor_name):
+    """Get instructor's schedule and availability"""
+    timetable = InstructorTimetable.query.filter_by(instructor_name=instructor_name).all()
+    
+    # Also get from current classes
+    classes = ClassItem.query.filter_by(faculty=instructor_name).all()
+    
+    # Build availability map
+    busy_slots = {}
+    for cls in classes:
+        key = f"{cls.days}_{cls.time}"
+        busy_slots[key] = {
+            "days": cls.days,
+            "timeSlot": cls.time,
+            "courseCode": cls.courseCode,
+            "section": cls.section,
+            "room": cls.room,
+            "isAvailable": False
+        }
+    
+    return jsonify({
+        "instructorName": instructor_name,
+        "busySlots": list(busy_slots.values())
+    }), 200
+
+@app.route("/api/check-instructor-availability", methods=["POST"])
+def check_instructor_availability():
+    """Check if instructor is available for a specific slot"""
+    data = request.json
+    instructor_name = data.get("instructorName")
+    days = data.get("days")
+    time_slot = data.get("timeSlot")
+    exclude_class_id = data.get("excludeClassId")  # For editing existing class
+    
+    if not instructor_name or not days or not time_slot:
+        return jsonify({"error": "Missing required parameters"}), 400
+    
+    # Check if instructor has a class at this time
+    query = ClassItem.query.filter_by(
+        faculty=instructor_name,
+        days=days,
+        time=time_slot
+    )
+    
+    if exclude_class_id:
+        query = query.filter(ClassItem.id != exclude_class_id)
+    
+    existing_class = query.first()
+    
+    if existing_class:
+        return jsonify({
+            "available": False,
+            "message": f"Instructor is already teaching {existing_class.courseCode} at this time",
+            "conflictingClass": existing_class.to_dict()
+        }), 200
+    
+    return jsonify({
+        "available": True,
+        "message": "Instructor is available"
+    }), 200
+
+@app.route("/api/available-sections/<course_code>", methods=["GET"])
+def get_available_sections(course_code):
+    """Get available sections for a course"""
+    # Get all existing sections for this course
+    existing_classes = ClassItem.query.filter_by(courseCode=course_code).all()
+    used_sections = [cls.section for cls in existing_classes]
+    
+    # Standard sections 01-10
+    standard_sections = [f"{i:02d}" for i in range(1, 11)]
+    available_sections = [sec for sec in standard_sections if sec not in used_sections]
+    
+    # Check if all standard sections are occupied
+    all_occupied = len(available_sections) == 0
+    
+    return jsonify({
+        "courseCode": course_code,
+        "availableSections": available_sections,
+        "usedSections": used_sections,
+        "allStandardOccupied": all_occupied
+    }), 200
 
 if __name__ == "__main__":
     app.run(debug=True)

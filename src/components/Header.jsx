@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, Download, Plus, Sparkles, X, Calendar } from 'lucide-react';
+import { Bell, Download, Plus, X, Calendar } from 'lucide-react';
 
 const Header = ({
   activeView,
@@ -10,7 +10,6 @@ const Header = ({
   showNotifications,
   setShowNotifications,
   exportToCSV,
-  openAIModal,
   openModal,
   setShowCalendarModal
 }) => {
@@ -50,18 +49,6 @@ const Header = ({
           >
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Export</span>
-          </button>
-        )}
-
-        {/* ADMIN ONLY: AI Schedule Button */}
-        {!isStudentMode && (
-          <button
-            onClick={openAIModal}
-            className="px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-medium text-sm hover:from-purple-700 hover:to-indigo-700 transition-all flex items-center gap-2 shadow-sm"
-            title="Generate schedule with AI"
-          >
-            <Sparkles className="w-4 h-4" />
-            <span className="hidden sm:inline">AI Schedule</span>
           </button>
         )}
 

@@ -1,5 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, AlertCircle, FlaskConical, ChevronDown, Clock, User } from 'lucide-react';
+import { checkInstructorAvailability, getAvailableSections, getClasses } from '../api';
+import AddLabClassModal from './AddLabClassModal';
+import RoomSelector from './RoomSelector';
+
+// Time slot code to actual time mapping
+const timeSlotToTime = {
+  '1': '08:00 AM - 09:30 AM',
+  '2': '09:40 AM - 11:10 AM',
+  '3': '11:20 AM - 12:50 PM',
+  '4': '01:00 PM - 02:30 PM',
+  '5': '02:40 PM - 04:10 PM',
+  '6': '04:20 PM - 05:50 PM'
+};
+
+// Parse time slot code (e.g., "ST1" -> { days: "ST", time: "08:00 AM - 09:30 AM" })
+const parseTimeSlotCode = (code) => {
+  const match = code.match(/^(ST|MW|RA)(\d)$/);
+  if (match) {
+    return {
+      days: match[1],
+      time: timeSlotToTime[match[2]] || null,
+      code: code
+    };
+  }
+  return null;
+};
 
 const AddClassModal = ({ isOpen, closeModal, editingClass, handleAddClass, isDarkMode }) => {
   const [formData, setFormData] = useState({
@@ -12,9 +38,55 @@ const AddClassModal = ({ isOpen, closeModal, editingClass, handleAddClass, isDar
     maxCapacity: 35
   });
 
+  const [availabilityStatus, setAvailabilityStatus] = useState(null);
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
+  const [availableSections, setAvailableSections] = useState([]);
+  const [allSectionsOccupied, setAllSectionsOccupied] = useState(false);
+  const [manualSectionInput, setManualSectionInput] = useState(false);
+  const [showLabModal, setShowLabModal] = useState(false);
+  const [existingClasses, setExistingClasses] = useState([]);
+  
+  // Instructor dropdown state
+  const [showInstructorDropdown, setShowInstructorDropdown] = useState(false);
+  const [instructorData, setInstructorData] = useState([]);
+  const [matchingInstructors, setMatchingInstructors] = useState([]);
+  const [selectedInstructorSlot, setSelectedInstructorSlot] = useState(null);
+
+  // Load instructor availability data
+  useEffect(() => {
+    const loadInstructorData = () => {
+      const saved = localStorage.getItem('instructorAvailability');
+      if (saved) {
+        setInstructorData(JSON.parse(saved));
+      }
+    };
+    loadInstructorData();
+  }, []);
+
+  // Fetch existing classes for room availability
+  useEffect(() => {
+    const fetchClasses = async () => {
+      try {
+        const classes = await getClasses();
+        setExistingClasses(classes);
+      } catch (error) {
+        console.error('Error fetching classes:', error);
+      }
+    };
+    if (isOpen) {
+      fetchClasses();
+      // Reload instructor data when modal opens
+      const saved = localStorage.getItem('instructorAvailability');
+      if (saved) {
+        setInstructorData(JSON.parse(saved));
+      }
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     if (editingClass) {
       setFormData(editingClass);
+      setManualSectionInput(false);
     } else {
       setFormData({
         courseCode: '',
@@ -25,8 +97,95 @@ const AddClassModal = ({ isOpen, closeModal, editingClass, handleAddClass, isDar
         room: 'NAC501',
         maxCapacity: 35
       });
+      setManualSectionInput(false);
     }
+    setAvailabilityStatus(null);
+    setAvailableSections([]);
+    setAllSectionsOccupied(false);
+    setSelectedInstructorSlot(null);
+    setShowInstructorDropdown(false);
   }, [editingClass, isOpen]);
+
+  // Find matching instructors when course code changes
+  useEffect(() => {
+    if (!formData.courseCode) {
+      setMatchingInstructors([]);
+      return;
+    }
+
+    const courseCode = formData.courseCode.toUpperCase().trim();
+    
+    // Find instructors whose preferable courses include this course
+    const matches = instructorData.filter(instructor => {
+      const courses = instructor.preferableCourses.split(',').map(c => c.trim().toUpperCase());
+      return courses.some(c => c === courseCode || courseCode.includes(c) || c.includes(courseCode));
+    });
+
+    setMatchingInstructors(matches);
+  }, [formData.courseCode, instructorData]);
+
+  // Fetch available sections when course code changes
+  useEffect(() => {
+    const fetchSections = async () => {
+      if (!formData.courseCode || editingClass) {
+        setAvailableSections([]);
+        setAllSectionsOccupied(false);
+        setManualSectionInput(false);
+        return;
+      }
+
+      try {
+        const result = await getAvailableSections(formData.courseCode);
+        setAvailableSections(result.availableSections);
+        setAllSectionsOccupied(result.allStandardOccupied);
+        
+        // Auto-select first available section
+        if (result.availableSections.length > 0) {
+          setFormData(prev => ({ ...prev, section: result.availableSections[0] }));
+          setManualSectionInput(false);
+        } else if (result.allStandardOccupied) {
+          // Enable manual input if all standard sections are occupied
+          setManualSectionInput(true);
+          setFormData(prev => ({ ...prev, section: '11' }));
+        }
+      } catch (error) {
+        console.error('Error fetching sections:', error);
+      }
+    };
+
+    const timeoutId = setTimeout(fetchSections, 300);
+    return () => clearTimeout(timeoutId);
+  }, [formData.courseCode, editingClass]);
+
+  // Check instructor availability when faculty, days, or time changes
+  useEffect(() => {
+    const checkAvailability = async () => {
+      if (!formData.faculty || !formData.days || !formData.time) {
+        setAvailabilityStatus(null);
+        return;
+      }
+
+      setCheckingAvailability(true);
+      try {
+        const result = await checkInstructorAvailability(
+          formData.faculty,
+          formData.days,
+          formData.time,
+          editingClass?.id
+        );
+        setAvailabilityStatus(result);
+      } catch (error) {
+        console.error('Error checking availability:', error);
+        setAvailabilityStatus(null);
+      } finally {
+        setCheckingAvailability(false);
+      }
+    };
+
+    // Debounce the availability check
+    const timeoutId = setTimeout(checkAvailability, 500);
+    return () => clearTimeout(timeoutId);
+  }, [formData.faculty, formData.days, formData.time, editingClass?.id]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -34,6 +193,25 @@ const AddClassModal = ({ isOpen, closeModal, editingClass, handleAddClass, isDar
       ...prev,
       [name]: value
     }));
+    
+    // Clear selected instructor slot if faculty is manually changed
+    if (name === 'faculty') {
+      setSelectedInstructorSlot(null);
+    }
+  };
+
+  const handleSelectInstructorSlot = (instructor, slotCode) => {
+    const parsed = parseTimeSlotCode(slotCode);
+    if (parsed) {
+      setFormData(prev => ({
+        ...prev,
+        faculty: instructor.fullName,
+        days: parsed.days,
+        time: parsed.time
+      }));
+      setSelectedInstructorSlot({ instructor, slotCode });
+      setShowInstructorDropdown(false);
+    }
   };
 
   const handleSubmit = (e) => {
@@ -47,13 +225,14 @@ const AddClassModal = ({ isOpen, closeModal, editingClass, handleAddClass, isDar
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50">
-      <div
-        className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity"
-        onClick={closeModal}
-      />
-      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden transform transition-all scale-100 ${isDarkMode ? 'bg-slate-800 shadow-slate-900' : 'bg-white shadow-slate-300'
-        }`}>
+    <>
+      <div className="fixed inset-0 z-50">
+        <div
+          className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity"
+          onClick={closeModal}
+        />
+        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden transform transition-all scale-100 ${isDarkMode ? 'bg-slate-800 shadow-slate-900' : 'bg-white shadow-slate-300'
+          }`}>
         <div className={`px-6 py-4 border-b flex justify-between items-center ${isDarkMode ? 'border-slate-700' : 'border-slate-100'
           }`}>
           <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
@@ -93,37 +272,158 @@ const AddClassModal = ({ isOpen, closeModal, editingClass, handleAddClass, isDar
                 }`}>
                 Section
               </label>
-              <input
-                type="text"
-                name="section"
-                value={formData.section}
-                onChange={handleInputChange}
-                placeholder="e.g. 01"
-                className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all ${isDarkMode
-                  ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-slate-500'
-                  : 'bg-white border-slate-200 focus:border-slate-900'
-                  }`}
-              />
+              {!editingClass && manualSectionInput ? (
+                <div>
+                  <input
+                    type="text"
+                    name="section"
+                    value={formData.section}
+                    onChange={handleInputChange}
+                    placeholder="e.g. 11, 12"
+                    className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all ${isDarkMode
+                      ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-slate-500'
+                      : 'bg-white border-slate-200 focus:border-slate-900'
+                      }`}
+                  />
+                  <p className={`text-xs mt-1 ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>
+                    All standard sections (01-10) are occupied. Enter custom section number.
+                  </p>
+                </div>
+              ) : !editingClass && availableSections.length > 0 ? (
+                <select
+                  name="section"
+                  value={formData.section}
+                  onChange={handleInputChange}
+                  className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all ${isDarkMode
+                    ? 'bg-slate-700 border-slate-600 text-white focus:border-slate-500'
+                    : 'bg-white border-slate-200 focus:border-slate-900'
+                    }`}
+                >
+                  {availableSections.map(sec => (
+                    <option key={sec} value={sec}>Section {sec}</option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  name="section"
+                  value={formData.section}
+                  onChange={handleInputChange}
+                  placeholder="e.g. 01"
+                  className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all ${isDarkMode
+                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-slate-500'
+                    : 'bg-white border-slate-200 focus:border-slate-900'
+                    }`}
+                />
+              )}
             </div>
           </div>
 
-          <div className="space-y-1.5">
+          {/* Faculty Name with Dropdown */}
+          <div className="space-y-1.5 relative">
             <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
               }`}>
               Faculty Name
             </label>
-            <input
-              type="text"
-              name="faculty"
-              value={formData.faculty}
-              onChange={handleInputChange}
-              required
-              placeholder="e.g. Dr. Rezwanul Huq"
-              className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all ${isDarkMode
-                ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-slate-500'
-                : 'border-slate-200 focus:border-slate-900'
-                }`}
-            />
+            <div className="relative">
+              <input
+                type="text"
+                name="faculty"
+                value={formData.faculty}
+                onChange={handleInputChange}
+                onFocus={() => matchingInstructors.length > 0 && setShowInstructorDropdown(true)}
+                required
+                placeholder="e.g. Dr. Rezwanul Huq"
+                className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all pr-10 ${isDarkMode
+                  ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-slate-500'
+                  : 'border-slate-200 focus:border-slate-900'
+                  }`}
+              />
+              {matchingInstructors.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowInstructorDropdown(!showInstructorDropdown)}
+                  className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded ${
+                    isDarkMode ? 'hover:bg-slate-600 text-slate-400' : 'hover:bg-slate-100 text-slate-500'
+                  }`}
+                >
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showInstructorDropdown ? 'rotate-180' : ''}`} />
+                </button>
+              )}
+            </div>
+            
+            {/* Instructor Dropdown */}
+            {showInstructorDropdown && matchingInstructors.length > 0 && (
+              <div className={`absolute z-20 w-full mt-1 rounded-lg shadow-xl border max-h-64 overflow-y-auto ${
+                isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-white border-slate-200'
+              }`}>
+                <div className={`px-3 py-2 border-b text-xs font-semibold uppercase ${
+                  isDarkMode ? 'border-slate-600 text-slate-400 bg-slate-800' : 'border-slate-100 text-slate-500 bg-slate-50'
+                }`}>
+                  Available Instructors for {formData.courseCode.toUpperCase()}
+                </div>
+                {matchingInstructors.map((instructor) => (
+                  <div key={instructor.id} className={`border-b last:border-b-0 ${
+                    isDarkMode ? 'border-slate-600' : 'border-slate-100'
+                  }`}>
+                    <div className={`px-3 py-2 flex items-center gap-2 ${
+                      isDarkMode ? 'bg-slate-700/50' : 'bg-slate-50'
+                    }`}>
+                      <User className="w-4 h-4" />
+                      <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
+                        {instructor.initials}
+                      </span>
+                      <span className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                        - {instructor.fullName}
+                      </span>
+                    </div>
+                    <div className="px-3 py-2 flex flex-wrap gap-1.5">
+                      {instructor.preferableTimes.map((slotCode) => {
+                        const parsed = parseTimeSlotCode(slotCode);
+                        const isSelected = selectedInstructorSlot?.instructor.id === instructor.id && 
+                                          selectedInstructorSlot?.slotCode === slotCode;
+                        return (
+                          <button
+                            key={slotCode}
+                            type="button"
+                            onClick={() => handleSelectInstructorSlot(instructor, slotCode)}
+                            className={`px-2.5 py-1.5 rounded text-xs font-mono font-medium transition-all ${
+                              isSelected
+                                ? isDarkMode
+                                  ? 'bg-emerald-600 text-white'
+                                  : 'bg-emerald-500 text-white'
+                                : isDarkMode
+                                ? 'bg-slate-600 text-emerald-400 hover:bg-slate-500'
+                                : 'bg-slate-100 text-emerald-700 hover:bg-slate-200'
+                            }`}
+                            title={parsed ? `${parsed.days} - ${parsed.time}` : slotCode}
+                          >
+                            {slotCode}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setShowInstructorDropdown(false)}
+                  className={`w-full px-3 py-2 text-xs text-center ${
+                    isDarkMode ? 'text-slate-400 hover:bg-slate-600' : 'text-slate-500 hover:bg-slate-50'
+                  }`}
+                >
+                  Close or type manually
+                </button>
+              </div>
+            )}
+            
+            {/* Show selected slot info */}
+            {selectedInstructorSlot && (
+              <p className={`text-xs mt-1 flex items-center gap-1 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                <Clock className="w-3 h-3" />
+                Selected: {selectedInstructorSlot.instructor.initials} - {selectedInstructorSlot.slotCode} ({formData.days} {formData.time})
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-5">
@@ -170,24 +470,46 @@ const AddClassModal = ({ isOpen, closeModal, editingClass, handleAddClass, isDar
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-5">
-            <div className="space-y-1.5">
-              <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
+          {/* Instructor Availability Status */}
+          {formData.faculty && (
+            <div className="mt-2">
+              {checkingAvailability ? (
+                <div className={`flex items-center gap-2 p-3 rounded-lg ${
+                  isDarkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'
                 }`}>
-                Room
-              </label>
-              <input
-                type="text"
-                name="room"
-                value={formData.room}
-                onChange={handleInputChange}
-                placeholder="e.g., NAC510, SAC302"
-                className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-slate-900 focus:outline-none transition-all ${isDarkMode
-                  ? 'bg-slate-700 border-slate-600 text-white focus:border-slate-500'
-                  : 'bg-white border-slate-200 focus:border-slate-900'
-                  }`}
-              />
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-slate-600"></div>
+                  <span className="text-sm">Checking instructor availability...</span>
+                </div>
+              ) : availabilityStatus && !availabilityStatus.available ? (
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500">
+                  <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Instructor Not Available</p>
+                    <p className="text-xs mt-1">{availabilityStatus.message}</p>
+                  </div>
+                </div>
+              ) : availabilityStatus && availabilityStatus.available ? (
+                <div className={`flex items-center gap-2 p-3 rounded-lg ${
+                  isDarkMode ? 'bg-green-900/20 border border-green-500/20 text-green-400' : 'bg-green-50 border border-green-200 text-green-700'
+                }`}>
+                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                  <span className="text-sm">Instructor is available for this slot</span>
+                </div>
+              ) : null}
             </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-5">
+            <RoomSelector
+              selectedRoom={formData.room}
+              onSelectRoom={(room) => setFormData(prev => ({ ...prev, room }))}
+              selectedDays={formData.days}
+              selectedTime={formData.time}
+              isDarkMode={isDarkMode}
+              existingClasses={existingClasses}
+              editingClassId={editingClass?.id}
+              isLabClass={false}
+            />
             <div className="space-y-1.5">
               <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
                 }`}>
@@ -208,16 +530,48 @@ const AddClassModal = ({ isOpen, closeModal, editingClass, handleAddClass, isDar
 
           <button
             type="submit"
-            className={`w-full font-bold py-3 rounded-md transition-all shadow-md mt-2 ${isDarkMode
-              ? 'bg-slate-700 hover:bg-slate-600 text-white'
-              : 'bg-slate-900 hover:bg-black text-white'
+            disabled={availabilityStatus && !availabilityStatus.available}
+            className={`w-full font-bold py-3 rounded-md transition-all shadow-md mt-2 ${
+              availabilityStatus && !availabilityStatus.available
+                ? 'bg-slate-400 cursor-not-allowed text-slate-200'
+                : isDarkMode
+                ? 'bg-slate-700 hover:bg-slate-600 text-white'
+                : 'bg-slate-900 hover:bg-black text-white'
               }`}
           >
             {editingClass ? 'Update Class' : 'Create Entry'}
           </button>
+
+          {/* Add Lab Class Button - Only show when not editing */}
+          {!editingClass && (
+            <button
+              type="button"
+              onClick={() => setShowLabModal(true)}
+              className={`w-full font-bold py-3 rounded-md transition-all shadow-md flex items-center justify-center gap-2 ${
+                isDarkMode
+                  ? 'bg-purple-900/30 hover:bg-purple-900/50 text-purple-300 border-2 border-purple-700'
+                  : 'bg-purple-50 hover:bg-purple-100 text-purple-700 border-2 border-purple-200'
+              }`}
+            >
+              <FlaskConical className="w-5 h-5" />
+              Add Lab Class
+            </button>
+          )}
         </form>
+        </div>
       </div>
-    </div>
+
+      {/* Lab Class Modal - Side by Side */}
+      {showLabModal && (
+        <AddLabClassModal
+          isOpen={showLabModal}
+          closeModal={() => setShowLabModal(false)}
+          theoryCourse={formData}
+          handleAddClass={handleAddClass}
+          isDarkMode={isDarkMode}
+        />
+      )}
+    </>
   );
 };
 

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cookie Test</title>
+    <style>
+        body { font-family: Arial; padding: 20px; max-width: 800px; margin: 0 auto; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        .success { color: green; }
+        .error { color: red; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Cookie & Session Test</h1>
+    <p>This tests if cookies work between localhost:5173 and localhost:5000</p>
+    
+    <div>
+        <button onclick="testLogin()">1. Test Login</button>
+        <button onclick="testAuthCheck()">2. Test Auth Check</button>
+        <button onclick="showCookies()">3. Show Cookies</button>
+        <button onclick="clearLogs()">Clear Logs</button>
+    </div>
+    
+    <h2>Results:</h2>
+    <div id="results"></div>
+
+    <script>
+        const BASE = 'http://localhost:5000';
+        
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            results.appendChild(div);
+        }
+        
+        function clearLogs() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        async function testLogin() {
+            log('Testing login with admin1/Admin@123...');
+            try {
+                const response = await fetch(`${BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ username: 'admin1', password: 'Admin@123' })
+                });
+                
+                log(`Response status: ${response.status}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✓ Login successful!`, 'success');
+                    log(`<pre>${JSON.stringify(data, null, 2)}</pre>`);
+                } else {
+                    const error = await response.text();
+                    log(`✗ Login failed: ${error}`, 'error');
+                }
+            } catch (error) {
+                log(`✗ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testAuthCheck() {
+            log('Testing auth check...');
+            try {
+                const response = await fetch(`${BASE}/api/auth/check`, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                log(`Response status: ${response.status}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.authenticated) {
+                        log(`✓ Authenticated as: ${data.user.username}`, 'success');
+                    } else {
+                        log(`✗ Not authenticated`, 'error');
+                    }
+                    log(`<pre>${JSON.stringify(data, null, 2)}</pre>`);
+                } else {
+                    log(`✗ Auth check failed`, 'error');
+                }
+            } catch (error) {
+                log(`✗ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        function showCookies() {
+            log('Browser cookies:');
+            log(`<pre>${document.cookie || '(no cookies)'}</pre>`);
+            log('Note: HttpOnly cookies (like session) will not appear here - check DevTools Application tab');
+        }
+    </script>
+</body>
+</html>
