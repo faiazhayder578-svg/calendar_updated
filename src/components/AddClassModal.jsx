@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, AlertCircle, FlaskConical, ChevronDown } from 'lucide-react';
+import { X, AlertCircle, FlaskConical, ChevronDown, User, Clock } from 'lucide-react';
 import { checkInstructorAvailability, getAvailableSections, getClasses } from '../api';
 import AddLabClassModal from './AddLabClassModal';
 import RoomSelector from './RoomSelector';
@@ -76,6 +76,7 @@ const AddClassModal = ({ isOpen, closeModal, editingClass, handleAddClass, isDar
   const [instructorData, setInstructorData] = useState([]);
   const [matchingInstructors, setMatchingInstructors] = useState([]);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
+  const [selectedInstructorSlot, setSelectedInstructorSlot] = useState(null);
   
   // Available days and times based on selected instructor
   const [availableDaysForInstructor, setAvailableDaysForInstructor] = useState([]);
@@ -159,6 +160,7 @@ const AddClassModal = ({ isOpen, closeModal, editingClass, handleAddClass, isDar
     setAvailableSections([]);
     setAllSectionsOccupied(false);
     setSelectedInstructor(null);
+    setSelectedInstructorSlot(null);
     setShowInstructorDropdown(false);
     setAvailableDaysForInstructor([]);
     setAvailableTimesForInstructor([]);
@@ -335,6 +337,21 @@ const AddClassModal = ({ isOpen, closeModal, editingClass, handleAddClass, isDar
     setShowInstructorDropdown(false);
   };
 
+  const handleSelectInstructorSlot = (instructor, slotCode) => {
+    const parsed = parseTimeSlotCode(slotCode);
+    if (parsed) {
+      setSelectedInstructorSlot({ instructor, slotCode });
+      setFormData(prev => ({
+        ...prev,
+        faculty: instructor.fullName,
+        days: parsed.days,
+        time: parsed.time
+      }));
+      setSelectedInstructor(instructor);
+      setShowInstructorDropdown(false);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const success = handleAddClass(formData);
@@ -361,28 +378,28 @@ const AddClassModal = ({ isOpen, closeModal, editingClass, handleAddClass, isDar
           onClick={closeModal}
         />
         {/* Modal container with animation */}
-        <div className={`relative w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden animate-modal-enter ${isDarkMode ? 'bg-slate-800 shadow-slate-900/50' : 'bg-white shadow-slate-200'
+        <div className={`relative w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-modal-enter ${isDarkMode ? 'bg-slate-800 shadow-slate-900/50' : 'bg-white shadow-slate-200'
           }`}>
         {/* Modal header with clear title and close button */}
         <div className={`px-6 py-4 border-b flex justify-between items-center ${isDarkMode ? 'border-slate-700' : 'border-slate-100'
           }`}>
-          <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+          <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-blue-600'}`}>
             {editingClass ? 'Edit Class' : 'Add New Class Manually'}
           </h3>
           <button
             onClick={closeModal}
-            className={`p-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isDarkMode 
-              ? 'text-slate-400 hover:text-white hover:bg-slate-700 focus:ring-slate-500' 
-              : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 focus:ring-slate-400'
+            className={`p-1.5 rounded-lg transition-all duration-200 focus:outline-none ${isDarkMode 
+              ? 'text-slate-400 hover:text-white hover:bg-slate-700' 
+              : 'text-slate-400 hover:text-slate-600'
               }`}
           >
-            <X className="w-5 h-5" strokeWidth={1.75} />
+            <X className="w-5 h-5" strokeWidth={2} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5 max-h-[60vh] overflow-y-auto">
-          <div className="grid grid-cols-2 gap-5">
-            <div className="space-y-1.5">
+        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
               <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
                 }`}>
                 Course Code
@@ -394,46 +411,41 @@ const AddClassModal = ({ isOpen, closeModal, editingClass, handleAddClass, isDar
                 onChange={handleInputChange}
                 required
                 placeholder="e.g. CSE327"
-                className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all duration-200 ${isDarkMode
-                  ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:ring-slate-500 focus:border-transparent'
-                  : 'bg-white border-slate-200 placeholder-slate-400 focus:ring-slate-500 focus:border-transparent'
+                className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${isDarkMode
+                  ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400'
+                  : 'bg-white border-slate-300 placeholder-slate-400'
                   }`}
               />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
                 }`}>
                 Section
               </label>
               {!editingClass && manualSectionInput ? (
-                <div>
-                  <input
-                    type="text"
-                    name="section"
-                    value={formData.section}
-                    onChange={handleInputChange}
-                    placeholder="e.g. 11, 12"
-                    className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all duration-200 ${isDarkMode
-                      ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:ring-slate-500 focus:border-transparent'
-                      : 'bg-white border-slate-200 placeholder-slate-400 focus:ring-slate-500 focus:border-transparent'
-                      }`}
-                  />
-                  <p className={`text-xs mt-1.5 ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>
-                    All standard sections (01-10) are occupied. Enter custom section number.
-                  </p>
-                </div>
+                <input
+                  type="text"
+                  name="section"
+                  value={formData.section}
+                  onChange={handleInputChange}
+                  placeholder="e.g. 11, 12"
+                  className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${isDarkMode
+                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400'
+                    : 'bg-white border-slate-300 placeholder-slate-400'
+                    }`}
+                />
               ) : !editingClass && availableSections.length > 0 ? (
                 <select
                   name="section"
                   value={formData.section}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all duration-200 appearance-none cursor-pointer ${isDarkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:ring-slate-500 focus:border-transparent'
-                    : 'bg-white border-slate-200 focus:ring-slate-500 focus:border-transparent'
+                  className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 appearance-none cursor-pointer ${isDarkMode
+                    ? 'bg-slate-700 border-slate-600 text-white'
+                    : 'bg-white border-slate-300'
                     }`}
                 >
                   {availableSections.map(sec => (
-                    <option key={sec} value={sec}>Section {sec}</option>
+                    <option key={sec} value={sec}>{sec}</option>
                   ))}
                 </select>
               ) : (
@@ -442,125 +454,38 @@ const AddClassModal = ({ isOpen, closeModal, editingClass, handleAddClass, isDar
                   name="section"
                   value={formData.section}
                   onChange={handleInputChange}
-                  placeholder="e.g. 01"
-                  className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all duration-200 ${isDarkMode
-                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:ring-slate-500 focus:border-transparent'
-                    : 'bg-white border-slate-200 placeholder-slate-400 focus:ring-slate-500 focus:border-transparent'
+                  placeholder="01"
+                  className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${isDarkMode
+                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400'
+                    : 'bg-white border-slate-300 placeholder-slate-400'
                     }`}
                 />
               )}
             </div>
           </div>
 
-          {/* Faculty Name with Dropdown */}
-          <div className="space-y-1.5 relative">
+          {/* Faculty Name - Simple Input */}
+          <div className="space-y-2">
             <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
               }`}>
               Faculty Name
             </label>
-            <div className="relative">
-              <input
-                type="text"
-                name="faculty"
-                value={formData.faculty}
-                onChange={handleInputChange}
-                onFocus={() => matchingInstructors.length > 0 && setShowInstructorDropdown(true)}
-                required
-                placeholder="e.g. Dr. Rezwanul Huq"
-                className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all duration-200 pr-10 ${isDarkMode
-                  ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:ring-slate-500 focus:border-transparent'
-                  : 'bg-white border-slate-200 placeholder-slate-400 focus:ring-slate-500 focus:border-transparent'
-                  }`}
-              />
-              {matchingInstructors.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setShowInstructorDropdown(!showInstructorDropdown)}
-                  className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-400 ${
-                    isDarkMode ? 'hover:bg-slate-600 text-slate-400' : 'hover:bg-slate-100 text-slate-500'
-                  }`}
-                >
-                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showInstructorDropdown ? 'rotate-180' : ''}`} strokeWidth={1.75} />
-                </button>
-              )}
-            </div>
-            
-            {/* Instructor Dropdown - Only show initials */}
-            {showInstructorDropdown && matchingInstructors.length > 0 && (
-              <div className={`absolute z-20 w-full mt-1 rounded-xl shadow-xl border max-h-64 overflow-y-auto animate-modal-enter ${
-                isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-white border-slate-200'
-              }`}>
-                <div className={`px-4 py-2.5 border-b text-xs font-semibold uppercase tracking-wide ${
-                  isDarkMode ? 'border-slate-600 text-slate-400 bg-slate-800' : 'border-slate-100 text-slate-500 bg-slate-50'
-                }`}>
-                  Available Instructors for {formData.courseCode.toUpperCase()}
-                </div>
-                {matchingInstructors.map((instructor) => (
-                  <div key={instructor.id} className={`border-b last:border-b-0 ${
-                    isDarkMode ? 'border-slate-600' : 'border-slate-100'
-                  }`}>
-                    <div className={`px-4 py-2.5 flex items-center gap-2 ${
-                      isDarkMode ? 'bg-slate-700/50' : 'bg-slate-50'
-                    }`}>
-                      <User className="w-4 h-4" strokeWidth={1.75} />
-                      <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
-                        {instructor.initials}
-                      </span>
-                      <span className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                        - {instructor.fullName}
-                      </span>
-                    </div>
-                    <div className="px-4 py-2.5 flex flex-wrap gap-2">
-                      {instructor.preferableTimes.map((slotCode) => {
-                        const parsed = parseTimeSlotCode(slotCode);
-                        const isSelected = selectedInstructorSlot?.instructor.id === instructor.id && 
-                                          selectedInstructorSlot?.slotCode === slotCode;
-                        return (
-                          <button
-                            key={slotCode}
-                            type="button"
-                            onClick={() => handleSelectInstructorSlot(instructor, slotCode)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
-                              isSelected
-                                ? isDarkMode
-                                  ? 'bg-emerald-600 text-white focus:ring-emerald-400'
-                                  : 'bg-emerald-500 text-white focus:ring-emerald-400'
-                                : isDarkMode
-                                ? 'bg-slate-600 text-emerald-400 hover:bg-slate-500 focus:ring-slate-400'
-                                : 'bg-slate-100 text-emerald-700 hover:bg-slate-200 focus:ring-slate-400'
-                            }`}
-                            title={parsed ? `${parsed.days} - ${parsed.time}` : slotCode}
-                          >
-                            {slotCode}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => setShowInstructorDropdown(false)}
-                  className={`w-full px-4 py-2.5 text-xs text-center transition-colors duration-200 ${
-                    isDarkMode ? 'text-slate-400 hover:bg-slate-600' : 'text-slate-500 hover:bg-slate-50'
-                  }`}
-                >
-                  Close or type manually
-                </button>
-              </div>
-            )}
-            
-            {/* Show selected slot info */}
-            {selectedInstructorSlot && (
-              <p className={`text-xs mt-1.5 flex items-center gap-1.5 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                <Clock className="w-3.5 h-3.5" strokeWidth={1.75} />
-                Selected: {selectedInstructorSlot.instructor.initials} - {selectedInstructorSlot.slotCode} ({formData.days} {formData.time})
-              </p>
-            )}
+            <input
+              type="text"
+              name="faculty"
+              value={formData.faculty}
+              onChange={handleInputChange}
+              required
+              placeholder="e.g. Dr. Rezwanul Huq"
+              className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${isDarkMode
+                ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400'
+                : 'bg-white border-slate-300 placeholder-slate-400'
+                }`}
+            />
           </div>
 
-          <div className="grid grid-cols-2 gap-5">
-            <div className="space-y-1.5">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
               <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
                 }`}>
                 Days
@@ -569,9 +494,9 @@ const AddClassModal = ({ isOpen, closeModal, editingClass, handleAddClass, isDar
                 name="days"
                 value={formData.days}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all duration-200 appearance-none cursor-pointer ${isDarkMode
-                  ? 'bg-slate-700 border-slate-600 text-white focus:ring-slate-500 focus:border-transparent'
-                  : 'bg-white border-slate-200 focus:ring-slate-500 focus:border-transparent'
+                className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 appearance-none cursor-pointer ${isDarkMode
+                  ? 'bg-slate-700 border-slate-600 text-white'
+                  : 'bg-white border-slate-300'
                   }`}
               >
                 <option value="ST">ST (Sun-Tue)</option>
@@ -579,7 +504,7 @@ const AddClassModal = ({ isOpen, closeModal, editingClass, handleAddClass, isDar
                 <option value="RA">RA (Thu-Sat)</option>
               </select>
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
                 }`}>
                 Time
@@ -588,9 +513,9 @@ const AddClassModal = ({ isOpen, closeModal, editingClass, handleAddClass, isDar
                 name="time"
                 value={formData.time}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all duration-200 appearance-none cursor-pointer ${isDarkMode
-                  ? 'bg-slate-700 border-slate-600 text-white focus:ring-slate-500 focus:border-transparent'
-                  : 'bg-white border-slate-200 focus:ring-slate-500 focus:border-transparent'
+                className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 appearance-none cursor-pointer ${isDarkMode
+                  ? 'bg-slate-700 border-slate-600 text-white'
+                  : 'bg-white border-slate-300'
                   }`}
               >
                 <option value="08:00 AM - 09:30 AM">08:00 AM - 09:30 AM</option>
@@ -603,34 +528,7 @@ const AddClassModal = ({ isOpen, closeModal, editingClass, handleAddClass, isDar
             </div>
           </div>
 
-          {/* Instructor Availability Status */}
-          {formData.faculty && (
-            <div className="mt-2">
-              {checkingAvailability ? (
-                <div className={`flex items-center gap-2.5 p-3.5 rounded-xl ${
-                  isDarkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'
-                }`}>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-slate-400 border-t-transparent"></div>
-                  <span className="text-sm">Checking instructor availability...</span>
-                </div>
-              ) : availabilityStatus && !availabilityStatus.available ? (
-                <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500">
-                  <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" strokeWidth={1.75} />
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold">Instructor Not Available</p>
-                    <p className="text-xs mt-1 opacity-90">{availabilityStatus.message}</p>
-                  </div>
-                </div>
-              ) : availabilityStatus && availabilityStatus.available ? (
-                <div className={`flex items-center gap-2.5 p-3.5 rounded-xl ${
-                  isDarkMode ? 'bg-green-900/20 border border-green-500/20 text-green-400' : 'bg-green-50 border border-green-200 text-green-700'
-                }`}>
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
-                  <span className="text-sm font-medium">Instructor is available for this slot</span>
-                </div>
-              ) : null}
-            </div>
-          )}
+
 
           <div className="grid grid-cols-2 gap-5">
             <RoomSelector
