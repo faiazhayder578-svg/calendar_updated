@@ -7,10 +7,7 @@ import ScheduleView from './ScheduleView';
 import AddClassModal from './AddClassModal';
 import CalendarView from './CalendarView';
 import InstructorAvailability from './InstructorAvailability';
-import WaitlistModal from './WaitlistModal';
 import ThemeSelector from './ThemeSelector';
-import QRCodeGenerator from './QRCodeGenerator';
-import GradeCalculator from './GradeCalculator';
 import AcademicCalendarModal from './AcademicCalendarModal';
 import ConflictModal from './ConflictModal';
 import ChangePasswordModal from './ChangePasswordModal';
@@ -55,10 +52,7 @@ const AdminLayout = () => {
 
   const [waitlists, setWaitlists] = useState({});
   const [currentTheme, setCurrentTheme] = useState('default');
-  const [showWaitlistModal, setShowWaitlistModal] = useState(false);
   const [showThemeSelector, setShowThemeSelector] = useState(false);
-  const [showQRGenerator, setShowQRGenerator] = useState(false);
-  const [showGradeCalc, setShowGradeCalc] = useState(false);
   const [selectedClassForAction, setSelectedClassForAction] = useState(null);
 
   const [academicEvents, setAcademicEventsState] = useState([]);
@@ -391,8 +385,7 @@ const AdminLayout = () => {
       addNotification(`Unenrolled from ${cls.courseCode}`, 'info');
     } else {
       if (cls.enrolled >= cls.maxCapacity) {
-        setSelectedClassForAction(cls);
-        setShowWaitlistModal(true);
+        addNotification(`${cls.courseCode} is full. Waitlist feature not available.`, 'error');
         return;
       }
 
@@ -529,8 +522,6 @@ const AdminLayout = () => {
               handleEnrollment={handleEnrollment}
               openModal={openModal}
               handleDelete={handleDelete}
-              setShowGradeCalc={setShowGradeCalc}
-              setShowQRGenerator={setShowQRGenerator}
               setSelectedClassForAction={setSelectedClassForAction}
             />
           )}
@@ -545,41 +536,11 @@ const AdminLayout = () => {
         isDarkMode={isDarkMode}
       />
 
-      <WaitlistModal
-        isOpen={showWaitlistModal}
-        closeModal={() => setShowWaitlistModal(false)}
-        selectedClass={selectedClassForAction}
-        waitlist={waitlists[selectedClassForAction?.id] || []}
-        joinWaitlist={(classId, studentInfo) => {
-          setWaitlists(prev => ({
-            ...prev,
-            [classId]: [...(prev[classId] || []), studentInfo]
-          }));
-          addNotification('Added to waitlist successfully!', 'success');
-          setShowWaitlistModal(false);
-        }}
-        isDarkMode={isDarkMode}
-      />
-
       <ThemeSelector
         isOpen={showThemeSelector}
         closeModal={() => setShowThemeSelector(false)}
         currentTheme={currentTheme}
         setCurrentTheme={setCurrentTheme}
-        isDarkMode={isDarkMode}
-      />
-
-      <QRCodeGenerator
-        isOpen={showQRGenerator}
-        closeModal={() => setShowQRGenerator(false)}
-        selectedClass={selectedClassForAction}
-        isDarkMode={isDarkMode}
-      />
-
-      <GradeCalculator
-        isOpen={showGradeCalc}
-        closeModal={() => setShowGradeCalc(false)}
-        selectedClass={selectedClassForAction}
         isDarkMode={isDarkMode}
       />
 

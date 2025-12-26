@@ -149,7 +149,7 @@ const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, appl
         onClick={handleClose}
       />
       {/* Modal container with animation */}
-      <div className={`relative w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-modal-enter ${isDarkMode ? 'bg-slate-800 shadow-slate-900/50' : 'bg-white shadow-slate-200'
+      <div className={`relative w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden animate-modal-enter ${isDarkMode ? 'bg-slate-800 shadow-slate-900/50' : 'bg-white shadow-slate-200'
           }`}>
         {/* Header with clear title and close button */}
         <div className={`px-6 py-4 border-b flex justify-between items-center ${isDarkMode ? 'border-slate-700 bg-gradient-to-r from-purple-900/30 to-indigo-900/30' : 'border-slate-100 bg-gradient-to-r from-purple-50 to-indigo-50'

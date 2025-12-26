@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Star, Edit2, Trash2, QrCode, CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
+import { Search, Star, Edit2, Trash2, CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
 import { encodeSchedule } from '../utils/scheduleEncoding';
 
 
@@ -17,8 +17,6 @@ const ScheduleView = ({
   handleEnrollment,
   openModal,
   handleDelete,
-  setShowGradeCalc,
-  setShowQRGenerator,
   setSelectedClassForAction,
   showEncodedSchedule = false
 }) => {
@@ -419,22 +417,6 @@ const ScheduleView = ({
                             aria-label={`Edit ${cls.courseCode}`}
                           >
                             <Edit2 className="w-4 h-4" strokeWidth={1.75} />
-                          </button>
-
-                          {/* ADMIN: QR Code Button */}
-                          <button
-                            onClick={() => {
-                              setSelectedClassForAction(cls);
-                              setShowQRGenerator(true);
-                            }}
-                            className={`p-2.5 min-h-[44px] min-w-[44px] rounded-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 inline-flex items-center justify-center ${isDarkMode
-                              ? 'hover:bg-slate-600 text-slate-400 hover:text-emerald-400 focus-visible:ring-emerald-400 focus-visible:ring-offset-slate-800'
-                              : 'hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 focus-visible:ring-emerald-500 focus-visible:ring-offset-white'
-                              }`}
-                            title="Generate QR code for attendance"
-                            aria-label={`Generate QR code for ${cls.courseCode}`}
-                          >
-                            <QrCode className="w-4 h-4" strokeWidth={1.75} />
                           </button>
 
                           {/* ADMIN: Delete Button */}
