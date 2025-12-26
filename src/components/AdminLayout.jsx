@@ -30,7 +30,24 @@ const AdminLayout = () => {
 
   const [activeView, setActiveView] = useState('schedule');
   const [editingClass, setEditingClass] = useState(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  
+  /* ============================================
+     THEME STATE - System Detection + Manual Toggle
+     ============================================ */
+  // Initialize dark mode: check localStorage first, then system preference
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    // Check if user has a stored preference (manual override)
+    const storedPreference = localStorage.getItem('darkMode');
+    if (storedPreference !== null) {
+      return JSON.parse(storedPreference);
+    }
+    // Fall back to system preference on first load only
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
+  });
+  
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [favorites, setFavorites] = useState([]);
@@ -102,7 +119,7 @@ const AdminLayout = () => {
     const savedClasses = localStorage.getItem('classes');
     const savedFavorites = localStorage.getItem('favorites');
     const savedEnrolled = localStorage.getItem('enrolledClasses');
-    const savedDarkMode = localStorage.getItem('darkMode');
+    // Note: darkMode is initialized in useState with system detection
     const savedWaitlists = localStorage.getItem('waitlists');
     const savedTheme = localStorage.getItem('theme');
     const savedEvents = localStorage.getItem('academicEvents');
@@ -110,7 +127,7 @@ const AdminLayout = () => {
     if (savedClasses) setClasses(JSON.parse(savedClasses));
     if (savedFavorites) setFavorites(JSON.parse(savedFavorites));
     if (savedEnrolled) setEnrolledClasses(JSON.parse(savedEnrolled));
-    if (savedDarkMode) setIsDarkMode(JSON.parse(savedDarkMode));
+    // darkMode already handled in useState initialization
     if (savedWaitlists) setWaitlists(JSON.parse(savedWaitlists));
     if (savedTheme) setCurrentTheme(savedTheme);
     if (savedEvents) setAcademicEvents(JSON.parse(savedEvents));
@@ -143,6 +160,12 @@ const AdminLayout = () => {
 
   useEffect(() => {
     localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
+    // Apply dark class to document for global CSS selectors
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }, [isDarkMode]);
 
   useEffect(() => {

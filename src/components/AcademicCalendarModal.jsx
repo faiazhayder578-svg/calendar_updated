@@ -398,28 +398,34 @@ const AcademicCalendarModal = ({ isOpen, closeModal, academicEvents, setAcademic
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className={`rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden ${isDarkMode ? 'bg-slate-800' : 'bg-white'
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Enhanced backdrop with blur effect */}
+      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-backdrop-enter" onClick={closeModal} />
+      {/* Modal container with animation */}
+      <div className={`relative rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden animate-modal-enter ${isDarkMode ? 'bg-slate-800 shadow-slate-900/50' : 'bg-white shadow-slate-200'
         }`}>
-        <div className={`px-6 py-4 border-b flex items-center justify-between ${isDarkMode ? 'border-slate-700' : 'border-slate-200'
+        {/* Header with clear title and close button */}
+        <div className={`px-6 py-4 border-b flex items-center justify-between ${isDarkMode ? 'border-slate-700' : 'border-slate-100'
           }`}>
           <div className="flex items-center gap-3">
-            <Calendar className={`w-6 h-6 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`} />
+            <Calendar className={`w-6 h-6 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`} strokeWidth={1.75} />
             <h2 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
               Academic Calendar Management
             </h2>
           </div>
           <button
             onClick={closeModal}
-            className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-100 text-slate-500'
+            className={`p-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isDarkMode 
+              ? 'hover:bg-slate-700 text-slate-400 hover:text-white focus:ring-slate-500' 
+              : 'hover:bg-slate-100 text-slate-500 hover:text-slate-900 focus:ring-slate-400'
               }`}
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" strokeWidth={1.75} />
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
-          <div className={`p-4 rounded-lg mb-6 ${isDarkMode ? 'bg-slate-700/50' : 'bg-slate-50'
+        <div className="px-6 py-5 overflow-y-auto max-h-[calc(90vh-140px)]">
+          <div className={`p-4 rounded-xl mb-6 ${isDarkMode ? 'bg-slate-700/50' : 'bg-slate-50'
             }`}>
             <h3 className={`text-sm font-semibold mb-3 ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>
               Import/Export
@@ -685,13 +691,13 @@ const AcademicCalendarModal = ({ isOpen, closeModal, academicEvents, setAcademic
           </div>
         </div>
 
-        <div className={`px-6 py-4 border-t flex justify-end gap-3 ${isDarkMode ? 'border-slate-700' : 'border-slate-200'
+        <div className={`px-6 py-4 border-t flex justify-end gap-3 ${isDarkMode ? 'border-slate-700' : 'border-slate-100'
           }`}>
           <button
             onClick={closeModal}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${isDarkMode
-              ? 'bg-slate-700 text-slate-200 hover:bg-slate-600'
-              : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+            className={`px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-[0.98] ${isDarkMode
+              ? 'bg-slate-700 text-slate-200 hover:bg-slate-600 focus:ring-slate-500'
+              : 'bg-slate-200 text-slate-700 hover:bg-slate-300 focus:ring-slate-400'
               }`}
           >
             Done

@@ -13,124 +13,135 @@ const Sidebar = ({
   onLogout,
   onChangePassword
 }) => {
+  // Navigation item base classes with smooth transitions and accessible focus states
+  const getNavItemClasses = (isActive, isDestructive = false) => {
+    const baseClasses = "w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 group focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
+    const focusRingColor = isDarkMode 
+      ? 'focus-visible:ring-slate-400 focus-visible:ring-offset-slate-800' 
+      : 'focus-visible:ring-slate-500 focus-visible:ring-offset-white';
+    
+    if (isDestructive) {
+      return `${baseClasses} ${focusRingColor} ${
+        isDarkMode
+          ? 'text-red-400 hover:bg-red-900/20 hover:text-red-300 focus-visible:ring-red-400'
+          : 'text-red-600 hover:bg-red-50 hover:text-red-700 focus-visible:ring-red-500'
+      }`;
+    }
+    
+    if (isActive) {
+      return `${baseClasses} ${focusRingColor} ${
+        isDarkMode
+          ? 'bg-slate-700 text-white border-l-2 border-white'
+          : 'bg-slate-100 text-slate-900 border-l-2 border-slate-900'
+      }`;
+    }
+    
+    return `${baseClasses} ${focusRingColor} ${
+      isDarkMode
+        ? 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+    }`;
+  };
+
+  // Icon classes with consistent sizing
+  const iconClasses = "w-5 h-5 flex-shrink-0 transition-opacity duration-200";
+  const iconActiveClasses = `${iconClasses} opacity-100`;
+  const iconInactiveClasses = `${iconClasses} opacity-70 group-hover:opacity-100`;
+
+  // Section divider component
+  const SectionDivider = ({ label }) => (
+    <div className="pt-5 pb-2 px-4">
+      <div className={`flex items-center gap-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+        <span className="text-[10px] uppercase font-bold tracking-wider">{label}</span>
+        <div className={`flex-1 h-px ${isDarkMode ? 'bg-slate-700' : 'bg-slate-200'}`}></div>
+      </div>
+    </div>
+  );
+
   return (
-    <aside className={`w-64 border-r flex flex-col z-20 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-colors duration-300 ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
+    <aside className={`w-64 border-r flex flex-col z-20 shadow-[4px_0_24px_rgba(0,0,0,0.03)] transition-colors duration-300 ${
+      isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
+    }`}>
+      {/* Logo Section */}
+      <div className={`h-20 flex items-center px-6 border-b ${
+        isDarkMode ? 'border-slate-700' : 'border-slate-100'
       }`}>
-      <div className={`h-20 flex items-center px-8 border-b ${isDarkMode ? 'border-slate-700' : 'border-slate-100'
-        }`}>
         <div className={`flex items-center gap-3 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-          <div className={`p-1.5 rounded-md ${isDarkMode ? 'bg-slate-700' : 'bg-slate-900'} text-white`}>
-            <Layers className="w-5 h-5" />
+          <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-slate-700' : 'bg-slate-900'} text-white shadow-sm`}>
+            <Layers className="w-5 h-5" strokeWidth={1.75} />
           </div>
           <span className="text-lg font-bold tracking-tight">NSU Class Scheduler</span>
         </div>
       </div>
 
-      <nav className="flex-1 pt-6 px-3 space-y-1">
-        {/* Dashboard - VISIBLE FOR BOTH STUDENTS AND ADMINS */}
+      {/* Navigation */}
+      <nav className="flex-1 pt-4 px-3 space-y-1 overflow-y-auto">
+        {/* Main Navigation */}
         <button
           onClick={() => setActiveView('dashboard')}
-          className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${activeView === 'dashboard'
-            ? isDarkMode
-              ? 'bg-slate-700 text-white'
-              : 'bg-slate-100 text-slate-900'
-            : isDarkMode
-              ? 'text-slate-400 hover:bg-slate-700 hover:text-white'
-              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-            }`}
+          className={getNavItemClasses(activeView === 'dashboard')}
         >
-          <BarChart2 className="w-5 h-5 mr-3 opacity-70" />
-          Dashboard
+          <BarChart2 className={activeView === 'dashboard' ? iconActiveClasses : iconInactiveClasses} strokeWidth={1.75} />
+          <span>Dashboard</span>
         </button>
 
         <button
           onClick={() => setActiveView('schedule')}
-          className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${activeView === 'schedule'
-            ? isDarkMode
-              ? 'bg-slate-700 text-white'
-              : 'bg-slate-100 text-slate-900'
-            : isDarkMode
-              ? 'text-slate-400 hover:bg-slate-700 hover:text-white'
-              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-            }`}
+          className={getNavItemClasses(activeView === 'schedule')}
         >
-          <Calendar className="w-5 h-5 mr-3" />
-          Class Schedule
+          <Calendar className={activeView === 'schedule' ? iconActiveClasses : iconInactiveClasses} strokeWidth={1.75} />
+          <span>Class Schedule</span>
         </button>
 
         {/* Instructor Availability - Admin Only */}
         {!isStudentMode && (
           <button
             onClick={() => setActiveView('instructors')}
-            className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${activeView === 'instructors'
-              ? isDarkMode
-                ? 'bg-slate-700 text-white'
-                : 'bg-slate-100 text-slate-900'
-              : isDarkMode
-                ? 'text-slate-400 hover:bg-slate-700 hover:text-white'
-                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-              }`}
+            className={getNavItemClasses(activeView === 'instructors')}
           >
-            <Users className="w-5 h-5 mr-3" />
-            Instructor Availability
+            <Users className={activeView === 'instructors' ? iconActiveClasses : iconInactiveClasses} strokeWidth={1.75} />
+            <span>Instructor Availability</span>
           </button>
         )}
 
         {/* Calendar View */}
         <button
           onClick={() => setActiveView('calendar')}
-          className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${activeView === 'calendar'
-            ? isDarkMode
-              ? 'bg-slate-700 text-white'
-              : 'bg-slate-100 text-slate-900'
-            : isDarkMode
-              ? 'text-slate-400 hover:bg-slate-700 hover:text-white'
-              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-            }`}
+          className={getNavItemClasses(activeView === 'calendar')}
         >
-          <CalendarDays className="w-5 h-5 mr-3" />
-          Calendar View
+          <CalendarDays className={activeView === 'calendar' ? iconActiveClasses : iconInactiveClasses} strokeWidth={1.75} />
+          <span>Calendar View</span>
         </button>
 
-        <div className="pt-4 pb-2 px-4">
-          <p className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? 'text-slate-500' : 'text-slate-400'
-            }`}>Views</p>
-        </div>
+        {/* Views Section */}
+        <SectionDivider label="Views" />
 
         <button
           onClick={toggleStudentView}
-          className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors group ${isDarkMode
-            ? 'text-slate-400 hover:bg-slate-700 hover:text-white'
-            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-            }`}
+          className={getNavItemClasses(false)}
         >
           {isStudentMode ? (
-            <LogOut className="w-5 h-5 mr-3 opacity-70 group-hover:opacity-100" />
+            <LogOut className={iconInactiveClasses} strokeWidth={1.75} />
           ) : (
-            <Eye className="w-5 h-5 mr-3 opacity-70 group-hover:opacity-100" />
+            <Eye className={iconInactiveClasses} strokeWidth={1.75} />
           )}
           <span>{isStudentMode ? 'Exit Student View' : 'Student View'}</span>
         </button>
 
-        <div className="pt-4 pb-2 px-4">
-          <p className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? 'text-slate-500' : 'text-slate-400'
-            }`}>Settings</p>
-        </div>
+        {/* Settings Section */}
+        <SectionDivider label="Settings" />
 
         <button
           onClick={() => {
             setIsDarkMode(!isDarkMode);
             addNotification(`${!isDarkMode ? 'Dark' : 'Light'} mode enabled`, 'info');
           }}
-          className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors group ${isDarkMode
-            ? 'text-slate-400 hover:bg-slate-700 hover:text-white'
-            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-            }`}
+          className={getNavItemClasses(false)}
         >
           {isDarkMode ? (
-            <Sun className="w-5 h-5 mr-3 opacity-70 group-hover:opacity-100" />
+            <Sun className={iconInactiveClasses} strokeWidth={1.75} />
           ) : (
-            <Moon className="w-5 h-5 mr-3 opacity-70 group-hover:opacity-100" />
+            <Moon className={iconInactiveClasses} strokeWidth={1.75} />
           )}
           <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
         </button>
@@ -138,68 +149,60 @@ const Sidebar = ({
         {/* Custom Themes */}
         <button
           onClick={() => setShowThemeSelector(true)}
-          className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors group ${isDarkMode
-            ? 'text-slate-400 hover:bg-slate-700 hover:text-white'
-            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-            }`}
+          className={getNavItemClasses(false)}
         >
-          <Palette className="w-5 h-5 mr-3 opacity-70 group-hover:opacity-100" />
+          <Palette className={iconInactiveClasses} strokeWidth={1.75} />
           <span>Custom Themes</span>
         </button>
 
-        {/* Admin Settings */}
+        {/* Admin Account Section */}
         {!isStudentMode && (
           <>
-            <div className="pt-4 pb-2 px-4">
-              <p className={`text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? 'text-slate-500' : 'text-slate-400'
-                }`}>Account</p>
-            </div>
+            <SectionDivider label="Account" />
 
             <button
               onClick={onChangePassword}
-              className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors group ${isDarkMode
-                ? 'text-slate-400 hover:bg-slate-700 hover:text-white'
-                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-                }`}
+              className={getNavItemClasses(false)}
             >
-              <Lock className="w-5 h-5 mr-3 opacity-70 group-hover:opacity-100" />
+              <Lock className={iconInactiveClasses} strokeWidth={1.75} />
               <span>Change Password</span>
             </button>
 
             <button
               onClick={onLogout}
-              className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors group ${isDarkMode
-                ? 'text-red-400 hover:bg-red-900/20 hover:text-red-300'
-                : 'text-red-600 hover:bg-red-50 hover:text-red-700'
-                }`}
+              className={getNavItemClasses(false, true)}
             >
-              <LogOut className="w-5 h-5 mr-3 opacity-70 group-hover:opacity-100" />
+              <LogOut className={iconInactiveClasses} strokeWidth={1.75} />
               <span>Logout</span>
             </button>
           </>
         )}
       </nav>
 
+      {/* User Info Section */}
       <div className={`p-4 border-t ${isDarkMode ? 'border-slate-700' : 'border-slate-100'}`}>
         <div className="flex items-center gap-3">
-          <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs border ${isDarkMode
-            ? 'bg-slate-700 text-slate-300 border-slate-600'
-            : 'bg-slate-200 text-slate-600 border-slate-300'
-            }`}>
-            <User className="w-5 h-5" />
+          {/* Enhanced Avatar */}
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-offset-2 transition-all duration-200 ${
+            isDarkMode
+              ? 'bg-gradient-to-br from-slate-600 to-slate-700 text-slate-200 ring-slate-600 ring-offset-slate-800'
+              : 'bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600 ring-slate-200 ring-offset-white'
+          }`}>
+            <User className="w-5 h-5" strokeWidth={1.75} />
           </div>
-          <div>
-            <p className={`text-sm font-semibold ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>
+          <div className="flex-1 min-w-0">
+            <p className={`text-sm font-semibold truncate ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>
               {currentUser?.username || 'Admin'}
             </p>
-            <p className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded w-max mt-0.5 ${isStudentMode
-              ? 'bg-emerald-50 text-emerald-600'
-              : isDarkMode
-                ? 'bg-slate-700 text-slate-400'
-                : 'bg-slate-100 text-slate-500'
-              }`}>
+            <span className={`inline-flex items-center text-[10px] uppercase font-bold px-2 py-0.5 rounded-full mt-1 ${
+              isStudentMode
+                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                : isDarkMode
+                  ? 'bg-slate-700 text-slate-400'
+                  : 'bg-slate-100 text-slate-500'
+            }`}>
               {isStudentMode ? 'Student (Preview)' : 'Administrator'}
-            </p>
+            </span>
           </div>
         </div>
       </div>
