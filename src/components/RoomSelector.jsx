@@ -157,17 +157,15 @@ const RoomSelector = ({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className={`w-full px-3 py-2 border rounded-md text-left flex items-center justify-between transition-all ${
+        className={`w-full px-3 py-2 border rounded-lg text-left flex items-center gap-1 transition-all ${
           isDarkMode
             ? 'bg-slate-700 border-slate-600 text-white hover:border-slate-500'
-            : 'bg-white border-slate-200 text-slate-800 hover:border-slate-400'
+            : 'bg-white border-slate-300 text-slate-800 hover:border-slate-400'
         }`}
       >
-        <span className="flex items-center gap-2">
-          <Building2 className="w-4 h-4" />
-          {selectedRoom || 'Select a room'}
-        </span>
-        <span className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+        <Building2 className="w-4 h-4 flex-shrink-0" />
+        <span className="font-medium">{selectedRoom || 'Select a room'}</span>
+        <span className={`text-[9px] leading-tight ${isDarkMode ? 'text-slate-400' : 'text-slate-400'}`}>
           Click to open room selector
         </span>
       </button>

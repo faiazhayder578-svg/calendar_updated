@@ -149,7 +149,7 @@ const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, appl
         onClick={handleClose}
       />
       {/* Modal container with animation */}
-      <div className={`relative w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden animate-modal-enter ${isDarkMode ? 'bg-slate-800 shadow-slate-900/50' : 'bg-white shadow-slate-200'
+      <div className={`relative w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-modal-enter ${isDarkMode ? 'bg-slate-800 shadow-slate-900/50' : 'bg-white shadow-slate-200'
           }`}>
         {/* Header with clear title and close button */}
         <div className={`px-6 py-4 border-b flex justify-between items-center ${isDarkMode ? 'border-slate-700 bg-gradient-to-r from-purple-900/30 to-indigo-900/30' : 'border-slate-100 bg-gradient-to-r from-purple-50 to-indigo-50'
@@ -160,7 +160,7 @@ const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, appl
             </div>
             <div>
               <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                AI Schedule Generator
+                Auto Schedule Generator
               </h3>
               <p className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
                 Enter instructor availability and let the system create optimal schedules
@@ -178,7 +178,7 @@ const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, appl
           </button>
         </div>
 
-        <div className="px-6 py-5 max-h-[60vh] overflow-y-auto">
+        <div className="px-6 py-5 max-h-[80vh] overflow-y-auto">
             {generatedSchedules.length === 0 ? (
               // Input Form
               <div className="space-y-6">
