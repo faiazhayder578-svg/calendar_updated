@@ -14,6 +14,7 @@ import GradeCalculator from './GradeCalculator';
 import AcademicCalendarModal from './AcademicCalendarModal';
 import ConflictModal from './ConflictModal';
 import ChangePasswordModal from './ChangePasswordModal';
+import AIScheduleModal from './AIScheduleModal';
 import { logout, changePassword, checkAuth } from '../api';
 
 const AdminLayout = () => {
@@ -48,6 +49,7 @@ const AdminLayout = () => {
 
   const [showConflictModal, setShowConflictModal] = useState(false);
   const [conflictDetails, setConflictDetails] = useState({ message: '', type: '' });
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
   const setAcademicEvents = (newEvents) => {
     setAcademicEventsState(prev => {
@@ -246,6 +248,28 @@ const AdminLayout = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingClass(null);
+  };
+
+  const openAIModal = () => setIsAIModalOpen(true);
+  const closeAIModal = () => setIsAIModalOpen(false);
+
+  const applyGeneratedSchedule = async (generatedClasses) => {
+    for (const cls of generatedClasses) {
+      try {
+        const response = await fetch('http://localhost:5000/api/classes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...cls, enrolled: 0, maxCapacity: 40 })
+        });
+        if (response.ok) {
+          const added = await response.json();
+          setClasses(prev => [...prev, added]);
+        }
+      } catch (error) {
+        console.error('Failed to add generated class:', error);
+      }
+    }
+    addNotification(`Applied ${generatedClasses.length} classes from Auto schedule!`, 'success');
   };
 
   const handleAddClass = (newClass) => {
@@ -452,6 +476,7 @@ const AdminLayout = () => {
           exportToCSV={exportToCSV}
           openModal={openModal}
           setShowCalendarModal={setShowCalendarModal}
+          openAIModal={openAIModal}
         />
 
         <div className="flex-1 overflow-y-auto p-8">
@@ -557,6 +582,14 @@ const AdminLayout = () => {
         closeModal={() => setShowChangePasswordModal(false)}
         onChangePassword={handleChangePassword}
         isDarkMode={isDarkMode}
+      />
+
+      <AIScheduleModal
+        isOpen={isAIModalOpen}
+        closeModal={closeAIModal}
+        isDarkMode={isDarkMode}
+        addNotification={addNotification}
+        applyGeneratedSchedule={applyGeneratedSchedule}
       />
     </div>
   );
