@@ -97,6 +97,28 @@ class InstructorTimetable(db.Model):
             "createdAt": self.created_at.isoformat() if self.created_at else None
         }
 
+class InstructorPreference(db.Model):
+    """Stores instructor availability preferences - editable via database"""
+    __tablename__ = 'instructor_preference'
+    id = db.Column(db.Integer, primary_key=True)
+    initials = db.Column(db.String(10), unique=True, nullable=False)
+    full_name = db.Column(db.String(100), nullable=False)
+    preferable_courses = db.Column(db.String(255), nullable=True)  # Comma-separated course codes
+    preferable_times = db.Column(db.String(255), nullable=True)    # Comma-separated time codes (ST1, MW2, etc.)
+    created_at = db.Column(db.String(50), nullable=True)  # Changed to String to handle empty values
+    updated_at = db.Column(db.String(50), nullable=True)  # Changed to String to handle empty values
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "initials": self.initials,
+            "fullName": self.full_name,
+            "preferableCourses": self.preferable_courses or "",
+            "preferableTimes": [t.strip() for t in (self.preferable_times or "").split(",") if t.strip()],
+            "createdAt": self.created_at if self.created_at else None,
+            "updatedAt": self.updated_at if self.updated_at else None
+        }
+
 class ClassItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     courseCode = db.Column(db.String(50), nullable=False)
@@ -904,6 +926,134 @@ def get_available_sections(course_code):
         "usedSections": used_sections,
         "allStandardOccupied": all_occupied
     }), 200
+
+# ============ INSTRUCTOR PREFERENCES API ============
+
+@app.route("/api/instructor-preferences", methods=["GET"])
+def get_instructor_preferences():
+    """Get all instructor preferences/availability"""
+    instructors = InstructorPreference.query.all()
+    return jsonify([i.to_dict() for i in instructors]), 200
+
+@app.route("/api/instructor-preferences/<int:id>", methods=["GET"])
+def get_instructor_preference(id):
+    """Get a single instructor preference by ID"""
+    instructor = InstructorPreference.query.get_or_404(id)
+    return jsonify(instructor.to_dict()), 200
+
+@app.route("/api/instructor-preferences", methods=["POST"])
+def add_instructor_preference():
+    """Add a new instructor preference"""
+    data = request.json
+    
+    # Check if initials already exist
+    existing = InstructorPreference.query.filter_by(initials=data.get("initials")).first()
+    if existing:
+        return jsonify({"error": "Instructor with these initials already exists"}), 400
+    
+    instructor = InstructorPreference(
+        initials=data.get("initials"),
+        full_name=data.get("fullName"),
+        preferable_courses=data.get("preferableCourses", ""),
+        preferable_times=",".join(data.get("preferableTimes", [])) if isinstance(data.get("preferableTimes"), list) else data.get("preferableTimes", "")
+    )
+    db.session.add(instructor)
+    db.session.commit()
+    return jsonify(instructor.to_dict()), 201
+
+@app.route("/api/instructor-preferences/<int:id>", methods=["PUT"])
+def update_instructor_preference(id):
+    """Update an instructor preference"""
+    instructor = InstructorPreference.query.get_or_404(id)
+    data = request.json
+    
+    instructor.initials = data.get("initials", instructor.initials)
+    instructor.full_name = data.get("fullName", instructor.full_name)
+    instructor.preferable_courses = data.get("preferableCourses", instructor.preferable_courses)
+    
+    # Handle preferableTimes as list or string
+    times = data.get("preferableTimes")
+    if times is not None:
+        if isinstance(times, list):
+            instructor.preferable_times = ",".join(times)
+        else:
+            instructor.preferable_times = times
+    
+    db.session.commit()
+    return jsonify(instructor.to_dict()), 200
+
+@app.route("/api/instructor-preferences/<int:id>", methods=["DELETE"])
+def delete_instructor_preference(id):
+    """Delete an instructor preference"""
+    instructor = InstructorPreference.query.get_or_404(id)
+    db.session.delete(instructor)
+    db.session.commit()
+    return jsonify({"message": "Deleted"}), 200
+
+def seed_instructor_preferences():
+    """Seed default instructor preferences if they don't exist"""
+    default_instructors = [
+        {
+            "initials": "RJP",
+            "full_name": "Dr. Rezwanul Huq Rana",
+            "preferable_courses": "CSE115, CSE215, CSE225",
+            "preferable_times": "ST1,ST2,MW1,MW2"
+        },
+        {
+            "initials": "HAR",
+            "full_name": "Dr. Hasibul Alam Rahman",
+            "preferable_courses": "MAT130, MAT250, MAT350",
+            "preferable_times": "ST2,ST3,ST5,RA1,RA2,RA3,RA5,RA6"
+        },
+        {
+            "initials": "MRH",
+            "full_name": "Mohammad Rezwanul Huq",
+            "preferable_courses": "CSE225, CSE327",
+            "preferable_times": "MW1,MW2,MW4"
+        },
+        {
+            "initials": "AFE",
+            "full_name": "Md Adnan Arefeen",
+            "preferable_courses": "CSE299, CSE327, CSE468",
+            "preferable_times": "ST3,ST4,MW4,MW5"
+        },
+        {
+            "initials": "ATA",
+            "full_name": "Atia Afroz",
+            "preferable_courses": "MAT250, MAT350",
+            "preferable_times": "ST3,ST4,ST6,MW3,MW4"
+        },
+        {
+            "initials": "MLE",
+            "full_name": "Mirza Mohammad Lutfe Elahi",
+            "preferable_courses": "CSE115",
+            "preferable_times": "ST1"
+        },
+        {
+            "initials": "SFR1",
+            "full_name": "Shafin Rahman",
+            "preferable_courses": "CSE299",
+            "preferable_times": "ST1"
+        }
+    ]
+    
+    seeded_count = 0
+    for inst_data in default_instructors:
+        existing = InstructorPreference.query.filter_by(initials=inst_data["initials"]).first()
+        if not existing:
+            instructor = InstructorPreference(
+                initials=inst_data["initials"],
+                full_name=inst_data["full_name"],
+                preferable_courses=inst_data["preferable_courses"],
+                preferable_times=inst_data["preferable_times"]
+            )
+            db.session.add(instructor)
+            seeded_count += 1
+    
+    if seeded_count > 0:
+        db.session.commit()
+    
+    return seeded_count
 
 if __name__ == "__main__":
     app.run(debug=True)

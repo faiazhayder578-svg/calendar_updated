@@ -3,72 +3,49 @@ import { User, Clock, BookOpen } from 'lucide-react';
 
 const InstructorAvailability = ({ isDarkMode }) => {
   const [instructors, setInstructors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Load instructors from localStorage on mount
+  // Fetch instructors from backend API
   useEffect(() => {
-    // Default instructors - these are pre-configured and cannot be edited by admins
-    const defaultInstructors = [
-      {
-        id: 1,
-        initials: 'RJP',
-        fullName: 'Dr. Rezwanul Huq Rana',
-        preferableCourses: 'CSE115, CSE215, CSE225',
-        preferableTimes: ['ST1', 'ST2', 'MW1', 'MW2']
-      },
-      {
-        id: 2,
-        initials: 'HAR',
-        fullName: 'Dr. Hasibul Alam Rahman',
-        preferableCourses: 'MAT130, MAT250, MAT350',
-        preferableTimes: ['ST2', 'ST3', 'ST5', 'RA1', 'RA2', 'RA3', 'RA5', 'RA6']
-      },
-      {
-        id: 3,
-        initials: 'MRH',
-        fullName: 'Mohammad Rezwanul Huq',
-        preferableCourses: 'CSE225, CSE327',
-        preferableTimes: ['MW1', 'MW2', 'MW4']
-      },
-      {
-        id: 4,
-        initials: 'AFE',
-        fullName: 'Md Adnan Arefeen',
-        preferableCourses: 'CSE299, CSE327, CSE468',
-        preferableTimes: ['ST3', 'ST4', 'MW4', 'MW5']
-      },
-      {
-        id: 5,
-        initials: 'ATA',
-        fullName: 'Atia Afroz',
-        preferableCourses: 'MAT250, MAT350',
-        preferableTimes: ['ST3', 'ST4', 'ST6', 'MW3', 'MW4']
+    const fetchInstructors = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('http://localhost:5000/api/instructor-preferences');
+        if (response.ok) {
+          const data = await response.json();
+          setInstructors(data);
+        } else {
+          setError('Failed to load instructor data');
+        }
+      } catch (err) {
+        console.error('Failed to fetch instructors:', err);
+        setError('Failed to connect to server');
+      } finally {
+        setLoading(false);
       }
-    ];
+    };
 
-    const saved = localStorage.getItem('instructorAvailability');
-    if (saved) {
-      const existingData = JSON.parse(saved);
-      // Merge: keep existing data and add any new default instructors not already present
-      const existingInitials = existingData.map(i => i.initials);
-      const newInstructors = defaultInstructors.filter(d => !existingInitials.includes(d.initials));
-      
-      if (newInstructors.length > 0) {
-        // Add new instructors with proper IDs
-        const maxId = Math.max(...existingData.map(i => i.id), 0);
-        const mergedData = [
-          ...existingData,
-          ...newInstructors.map((inst, idx) => ({ ...inst, id: maxId + idx + 1 }))
-        ];
-        setInstructors(mergedData);
-        localStorage.setItem('instructorAvailability', JSON.stringify(mergedData));
-      } else {
-        setInstructors(existingData);
-      }
-    } else {
-      setInstructors(defaultInstructors);
-      localStorage.setItem('instructorAvailability', JSON.stringify(defaultInstructors));
-    }
+    fetchInstructors();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={`p-4 rounded-lg border ${
+        isDarkMode ? 'bg-red-900/20 border-red-800 text-red-300' : 'bg-red-50 border-red-200 text-red-700'
+      }`}>
+        <p>{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -142,7 +119,7 @@ const InstructorAvailability = ({ isDarkMode }) => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-1">
-                        {instructor.preferableCourses.split(',').map((course, idx) => (
+                        {(instructor.preferableCourses || "").split(',').filter(c => c.trim()).map((course, idx) => (
                           <span
                             key={idx}
                             className={`px-2 py-1 rounded text-xs font-medium ${
@@ -158,7 +135,7 @@ const InstructorAvailability = ({ isDarkMode }) => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-1">
-                        {instructor.preferableTimes.map((time, idx) => (
+                        {(instructor.preferableTimes || []).map((time, idx) => (
                           <span
                             key={idx}
                             className={`px-2 py-1 rounded text-xs font-mono font-medium ${

@@ -21,7 +21,6 @@ __pycache__/
 venv/
 .venv/
 env/
-instance/
 .pytest_cache/
 .coverage
 htmlcov/
@@ -31,5 +30,3 @@ backend/uploads/
 backend/output.txt
 backend/events_summary.txt
 backend/extracted_events.json
-*.db
-*.sqlite3
