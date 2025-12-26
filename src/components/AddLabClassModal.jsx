@@ -134,20 +134,23 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Enhanced backdrop with blur effect */}
       <div
-        className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-backdrop-enter"
         onClick={closeModal}
       />
-      <div className={`relative w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden transform transition-all scale-100 ${
-        isDarkMode ? 'bg-slate-800 shadow-slate-900' : 'bg-white shadow-slate-300'
+      {/* Modal container with animation */}
+      <div className={`relative w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden animate-modal-enter ${
+        isDarkMode ? 'bg-slate-800 shadow-slate-900/50' : 'bg-white shadow-slate-200'
       }`}>
+        {/* Header with clear title and close button */}
         <div className={`px-6 py-4 border-b flex justify-between items-center ${
           isDarkMode ? 'border-slate-700 bg-gradient-to-r from-purple-900/30 to-blue-900/30' : 'border-slate-100 bg-gradient-to-r from-purple-50 to-blue-50'
         }`}>
           <div className="flex items-center gap-3">
             <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-purple-900/50' : 'bg-purple-100'}`}>
-              <FlaskConical className={`w-5 h-5 ${isDarkMode ? 'text-purple-300' : 'text-purple-600'}`} />
+              <FlaskConical className={`w-5 h-5 ${isDarkMode ? 'text-purple-300' : 'text-purple-600'}`} strokeWidth={1.75} />
             </div>
             <div>
               <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
@@ -160,13 +163,17 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
           </div>
           <button
             onClick={closeModal}
-            className={`transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white' : 'text-slate-400 hover:text-slate-900'}`}
+            className={`p-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+              isDarkMode 
+                ? 'text-slate-400 hover:text-white hover:bg-slate-700/50 focus:ring-purple-500' 
+                : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 focus:ring-purple-400'
+            }`}
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" strokeWidth={1.75} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5 max-h-[60vh] overflow-y-auto">
           <div className="grid grid-cols-2 gap-5">
             <div className="space-y-1.5">
               <label className={`text-xs font-semibold uppercase tracking-wide ${
@@ -181,10 +188,10 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
                 onChange={handleInputChange}
                 required
                 placeholder="e.g. CSE115L"
-                className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-purple-500 focus:outline-none transition-all ${
+                className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
                   isDarkMode
-                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-purple-500'
-                    : 'border-slate-200 focus:border-purple-500'
+                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400'
+                    : 'bg-white border-slate-200 placeholder-slate-400'
                 }`}
               />
             </div>
@@ -199,13 +206,13 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
                 name="section"
                 value={formData.section}
                 readOnly
-                className={`w-full px-3 py-2 border rounded-md cursor-not-allowed ${
+                className={`w-full px-4 py-2.5 border rounded-lg text-sm cursor-not-allowed ${
                   isDarkMode
                     ? 'bg-slate-700/50 border-slate-600 text-slate-400'
                     : 'bg-slate-100 border-slate-200 text-slate-600'
                 }`}
               />
-              <p className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`}>
+              <p className={`text-xs mt-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`}>
                 Same as theory class section
               </p>
             </div>
@@ -224,10 +231,10 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
               onChange={handleInputChange}
               required
               placeholder="e.g. Dr. Rezwanul Huq"
-              className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-purple-500 focus:outline-none transition-all ${
+              className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
                 isDarkMode
-                  ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-purple-500'
-                  : 'border-slate-200 focus:border-purple-500'
+                  ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400'
+                  : 'bg-white border-slate-200 placeholder-slate-400'
               }`}
             />
           </div>
@@ -243,10 +250,10 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
                 name="days"
                 value={formData.days}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-purple-500 focus:outline-none transition-all ${
+                className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer ${
                   isDarkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-purple-500'
-                    : 'bg-white border-slate-200 focus:border-purple-500'
+                    ? 'bg-slate-700 border-slate-600 text-white'
+                    : 'bg-white border-slate-200'
                 }`}
               >
                 {labDays.map(day => (
@@ -264,10 +271,10 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
                 name="time"
                 value={formData.time}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-purple-500 focus:outline-none transition-all ${
+                className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer ${
                   isDarkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-purple-500'
-                    : 'bg-white border-slate-200 focus:border-purple-500'
+                    ? 'bg-slate-700 border-slate-600 text-white'
+                    : 'bg-white border-slate-200'
                 }`}
               >
                 {labTimeSlots.map(slot => (
@@ -281,26 +288,26 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
           {formData.faculty && (
             <div className="mt-2">
               {checkingAvailability ? (
-                <div className={`flex items-center gap-2 p-3 rounded-lg ${
+                <div className={`flex items-center gap-2.5 p-3.5 rounded-xl ${
                   isDarkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'
                 }`}>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-purple-400 border-t-transparent"></div>
                   <span className="text-sm">Checking instructor availability...</span>
                 </div>
               ) : availabilityStatus && !availabilityStatus.available ? (
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500">
-                  <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500">
+                  <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" strokeWidth={1.75} />
                   <div className="flex-1">
-                    <p className="text-sm font-medium">Instructor Not Available</p>
-                    <p className="text-xs mt-1">{availabilityStatus.message}</p>
+                    <p className="text-sm font-semibold">Instructor Not Available</p>
+                    <p className="text-xs mt-1 opacity-90">{availabilityStatus.message}</p>
                   </div>
                 </div>
               ) : availabilityStatus && availabilityStatus.available ? (
-                <div className={`flex items-center gap-2 p-3 rounded-lg ${
+                <div className={`flex items-center gap-2.5 p-3.5 rounded-xl ${
                   isDarkMode ? 'bg-green-900/20 border border-green-500/20 text-green-400' : 'bg-green-50 border border-green-200 text-green-700'
                 }`}>
-                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                  <span className="text-sm">Instructor is available for this lab slot</span>
+                  <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                  <span className="text-sm font-medium">Instructor is available for this lab slot</span>
                 </div>
               ) : null}
             </div>
@@ -328,10 +335,10 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
                 name="maxCapacity"
                 value={formData.maxCapacity}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-purple-500 focus:outline-none transition-all ${
+                className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
                   isDarkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-purple-500'
-                    : 'border-slate-200 focus:border-purple-500'
+                    ? 'bg-slate-700 border-slate-600 text-white'
+                    : 'bg-white border-slate-200'
                 }`}
               />
             </div>
@@ -340,12 +347,12 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
           <button
             type="submit"
             disabled={availabilityStatus && !availabilityStatus.available}
-            className={`w-full font-bold py-3 rounded-md transition-all shadow-md mt-2 ${
+            className={`w-full inline-flex items-center justify-center gap-2 font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-[0.98] mt-2 ${
               availabilityStatus && !availabilityStatus.available
                 ? 'bg-slate-400 cursor-not-allowed text-slate-200'
                 : isDarkMode
-                ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white'
-                : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white'
+                ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white focus:ring-purple-400'
+                : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white focus:ring-purple-400'
             }`}
           >
             Create Lab Class
