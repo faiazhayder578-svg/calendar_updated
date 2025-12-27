@@ -18,7 +18,7 @@ const AdminLayout = () => {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(null);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
-  
+
   const [isStudentMode, setIsStudentMode] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -27,7 +27,7 @@ const AdminLayout = () => {
 
   const [activeView, setActiveView] = useState('schedule');
   const [editingClass, setEditingClass] = useState(null);
-  
+
   /* ============================================
      THEME STATE - System Detection + Manual Toggle
      ============================================ */
@@ -44,7 +44,7 @@ const AdminLayout = () => {
     }
     return false;
   });
-  
+
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [favorites, setFavorites] = useState([]);
@@ -80,7 +80,7 @@ const AdminLayout = () => {
     const verifyAuth = async () => {
       try {
         const response = await checkAuth();
-        
+
         if (response.authenticated) {
           setCurrentUser(response.user);
         } else {
@@ -453,9 +453,8 @@ const AdminLayout = () => {
 
   if (!currentUser) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${
-        isDarkMode ? 'bg-slate-900' : 'bg-slate-50'
-      }`}>
+      <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50'
+        }`}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-600 mx-auto mb-4"></div>
           <p className={isDarkMode ? 'text-slate-400' : 'text-slate-600'}>Loading...</p>
@@ -480,9 +479,16 @@ const AdminLayout = () => {
         onChangePassword={() => setShowChangePasswordModal(true)}
       />
 
-      <main className={`flex-1 flex flex-col h-screen overflow-hidden relative transition-colors duration-300 ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50/50'}`}>
+      <main className={`flex-1 flex flex-col h-screen overflow-hidden relative transition-colors duration-300 page-background ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50/50'}`}>
+        {/* Background Decorative Elements */}
+        <div className="page-bg-blur-1"></div>
+        <div className="page-bg-blur-2"></div>
+        <div className="page-bg-shape-1"></div>
+        <div className="page-bg-shape-2"></div>
+        <div className="page-bg-shape-3"></div>
+
         {isStudentMode && (
-          <div className="bg-slate-900 text-white text-xs text-center py-1 font-medium tracking-wide">
+          <div className="relative z-10 bg-slate-900 text-white text-xs text-center py-1 font-medium tracking-wide">
             PREVIEWING AS STUDENT (READ ONLY)
           </div>
         )}
@@ -501,36 +507,38 @@ const AdminLayout = () => {
           openAIModal={openAIModal}
         />
 
-        <div className="flex-1 overflow-y-auto p-8">
-          {activeView === 'dashboard' ? (
-            <Dashboard classes={classes} isDarkMode={isDarkMode} />
-          ) : activeView === 'calendar' ? (
-            <CalendarView
-              classes={classes}
-              enrolledClasses={enrolledClasses}
-              isDarkMode={isDarkMode}
-              academicEvents={academicEvents}
-            />
-          ) : activeView === 'instructors' ? (
-            <InstructorAvailability isDarkMode={isDarkMode} />
-          ) : (
-            <ScheduleView
-              classes={classes}
-              isDarkMode={isDarkMode}
-              isStudentMode={isStudentMode}
-              favorites={favorites}
-              enrolledClasses={enrolledClasses}
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              sortConfig={sortConfig}
-              handleSort={handleSort}
-              toggleFavorite={toggleFavorite}
-              handleEnrollment={handleEnrollment}
-              openModal={openModal}
-              handleDelete={handleDelete}
-              setSelectedClassForAction={setSelectedClassForAction}
-            />
-          )}
+        <div className="relative z-10 flex-1 overflow-y-auto p-8">
+          <div className="animate-fade-in-up">
+            {activeView === 'dashboard' ? (
+              <Dashboard classes={classes} isDarkMode={isDarkMode} />
+            ) : activeView === 'calendar' ? (
+              <CalendarView
+                classes={classes}
+                enrolledClasses={enrolledClasses}
+                isDarkMode={isDarkMode}
+                academicEvents={academicEvents}
+              />
+            ) : activeView === 'instructors' ? (
+              <InstructorAvailability isDarkMode={isDarkMode} />
+            ) : (
+              <ScheduleView
+                classes={classes}
+                isDarkMode={isDarkMode}
+                isStudentMode={isStudentMode}
+                favorites={favorites}
+                enrolledClasses={enrolledClasses}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                sortConfig={sortConfig}
+                handleSort={handleSort}
+                toggleFavorite={toggleFavorite}
+                handleEnrollment={handleEnrollment}
+                openModal={openModal}
+                handleDelete={handleDelete}
+                setSelectedClassForAction={setSelectedClassForAction}
+              />
+            )}
+          </div>
         </div>
       </main>
 

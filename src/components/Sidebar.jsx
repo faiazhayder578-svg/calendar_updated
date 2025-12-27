@@ -15,62 +15,62 @@ const Sidebar = ({
 }) => {
   // Navigation item base classes with smooth transitions and accessible focus states
   const getNavItemClasses = (isActive, isDestructive = false) => {
-    const baseClasses = "w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 group focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
-    const focusRingColor = isDarkMode 
-      ? 'focus-visible:ring-slate-400 focus-visible:ring-offset-slate-800' 
-      : 'focus-visible:ring-slate-500 focus-visible:ring-offset-white';
-    
+    const baseClasses = "w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
+    const focusRingColor = isDarkMode
+      ? 'focus-visible:ring-indigo-400 focus-visible:ring-offset-slate-800'
+      : 'focus-visible:ring-indigo-500 focus-visible:ring-offset-white';
+
     if (isDestructive) {
-      return `${baseClasses} ${focusRingColor} ${
-        isDarkMode
-          ? 'text-red-400 hover:bg-red-900/20 hover:text-red-300 focus-visible:ring-red-400'
-          : 'text-red-600 hover:bg-red-50 hover:text-red-700 focus-visible:ring-red-500'
-      }`;
+      return `${baseClasses} ${focusRingColor} ${isDarkMode
+        ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300'
+        : 'text-red-600 hover:bg-red-50 hover:text-red-700'
+        }`;
     }
-    
+
     if (isActive) {
-      return `${baseClasses} ${focusRingColor} ${
-        isDarkMode
-          ? 'bg-slate-700 text-white border-l-2 border-white'
-          : 'bg-slate-100 text-slate-900 border-l-2 border-slate-900'
-      }`;
+      return `${baseClasses} ${focusRingColor} sidebar-active-item ${isDarkMode
+        ? 'text-white border-l-2 shadow-lg'
+        : 'text-slate-900 border-l-2 shadow-md'
+        }`;
     }
-    
-    return `${baseClasses} ${focusRingColor} ${
-      isDarkMode
-        ? 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
-        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-    }`;
+
+    return `${baseClasses} ${focusRingColor} sidebar-nav-item ${isDarkMode
+      ? 'text-slate-400 hover:bg-[#124d54]/10 hover:text-[#339fa7]'
+      : 'text-slate-600 hover:bg-[#124d54]/10 hover:text-[#124d54]'
+      }`;
   };
 
   // Icon classes with consistent sizing
-  const iconClasses = "w-5 h-5 flex-shrink-0 transition-opacity duration-200";
+  const iconClasses = "w-5 h-5 flex-shrink-0 transition-all duration-200";
   const iconActiveClasses = `${iconClasses} opacity-100`;
-  const iconInactiveClasses = `${iconClasses} opacity-70 group-hover:opacity-100`;
+  const iconInactiveClasses = `${iconClasses} opacity-70 group-hover:opacity-100 group-hover:scale-110`;
 
   // Section divider component
   const SectionDivider = ({ label }) => (
-    <div className="pt-5 pb-2 px-4">
+    <div className="pt-6 pb-2 px-4">
       <div className={`flex items-center gap-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
-        <span className="text-[10px] uppercase font-bold tracking-wider">{label}</span>
-        <div className={`flex-1 h-px ${isDarkMode ? 'bg-slate-700' : 'bg-slate-200'}`}></div>
+        <span className="text-[10px] uppercase font-bold tracking-widest">{label}</span>
+        <div className={`flex-1 h-px ${isDarkMode ? 'bg-gradient-to-r from-slate-700 to-transparent' : 'bg-gradient-to-r from-slate-200 to-transparent'}`}></div>
       </div>
     </div>
   );
 
   return (
-    <aside className={`w-64 border-r flex flex-col z-20 shadow-[4px_0_24px_rgba(0,0,0,0.03)] transition-colors duration-300 ${
-      isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
-    }`}>
-      {/* Logo Section */}
-      <div className={`h-20 flex items-center px-6 border-b ${
-        isDarkMode ? 'border-slate-700' : 'border-slate-100'
+    <aside className={`sidebar-wrapper w-64 flex flex-col z-20 transition-all duration-300 glass-sidebar shrink-0 ${isDarkMode ? '' : ''
       }`}>
+      {/* Logo Section with Accent Gradient */}
+      <div className={`h-20 flex items-center px-6 border-b shrink-0 ${isDarkMode ? 'border-slate-700/50' : 'border-slate-200/50'
+        }`}>
         <div className={`flex items-center gap-3 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-          <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-slate-700' : 'bg-slate-900'} text-white shadow-sm`}>
+          <div className="sidebar-logo-icon p-2.5 rounded-xl text-white shadow-lg shrink-0">
             <Layers className="w-5 h-5" strokeWidth={1.75} />
           </div>
-          <span className="text-lg font-bold tracking-tight">NSU Class Scheduler</span>
+          <div className="sidebar-text min-w-0">
+            <span className="text-lg font-bold tracking-tight truncate block">NSU Scheduler</span>
+            <p className="sidebar-subtitle text-[10px] font-medium uppercase tracking-wider">
+              Admin Portal
+            </p>
+          </div>
         </div>
       </div>
 
@@ -83,6 +83,9 @@ const Sidebar = ({
         >
           <BarChart2 className={activeView === 'dashboard' ? iconActiveClasses : iconInactiveClasses} strokeWidth={1.75} />
           <span>Dashboard</span>
+          {activeView === 'dashboard' && (
+            <span className={`ml-auto w-1.5 h-1.5 rounded-full ${isDarkMode ? 'bg-indigo-400/40' : 'bg-indigo-400/50'}`}></span>
+          )}
         </button>
 
         <button
@@ -91,6 +94,9 @@ const Sidebar = ({
         >
           <Calendar className={activeView === 'schedule' ? iconActiveClasses : iconInactiveClasses} strokeWidth={1.75} />
           <span>Class Schedule</span>
+          {activeView === 'schedule' && (
+            <span className={`ml-auto w-1.5 h-1.5 rounded-full ${isDarkMode ? 'bg-indigo-400/40' : 'bg-indigo-400/50'}`}></span>
+          )}
         </button>
 
         {/* Instructor Availability - Admin Only */}
@@ -101,6 +107,9 @@ const Sidebar = ({
           >
             <Users className={activeView === 'instructors' ? iconActiveClasses : iconInactiveClasses} strokeWidth={1.75} />
             <span>Instructor Availability</span>
+            {activeView === 'instructors' && (
+              <span className={`ml-auto w-1.5 h-1.5 rounded-full ${isDarkMode ? 'bg-indigo-400/40' : 'bg-indigo-400/50'}`}></span>
+            )}
           </button>
         )}
 
@@ -111,6 +120,9 @@ const Sidebar = ({
         >
           <CalendarDays className={activeView === 'calendar' ? iconActiveClasses : iconInactiveClasses} strokeWidth={1.75} />
           <span>Calendar View</span>
+          {activeView === 'calendar' && (
+            <span className={`ml-auto w-1.5 h-1.5 rounded-full ${isDarkMode ? 'bg-indigo-400/40' : 'bg-indigo-400/50'}`}></span>
+          )}
         </button>
 
         {/* Views Section */}
@@ -179,28 +191,32 @@ const Sidebar = ({
         )}
       </nav>
 
-      {/* User Info Section */}
-      <div className={`p-4 border-t ${isDarkMode ? 'border-slate-700' : 'border-slate-100'}`}>
-        <div className="flex items-center gap-3">
-          {/* Enhanced Avatar */}
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-offset-2 transition-all duration-200 ${
-            isDarkMode
-              ? 'bg-gradient-to-br from-slate-600 to-slate-700 text-slate-200 ring-slate-600 ring-offset-slate-800'
-              : 'bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600 ring-slate-200 ring-offset-white'
+      {/* User Info Section with Enhanced Design */}
+      <div className={`p-4 border-t ${isDarkMode ? 'border-slate-700/50' : 'border-slate-200/50'}`}>
+        <div className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${isDarkMode
+          ? 'bg-slate-800/50 hover:bg-slate-700/50'
+          : 'bg-slate-100/50 hover:bg-slate-200/50'
           }`}>
-            <User className="w-5 h-5" strokeWidth={1.75} />
+          {/* Enhanced Avatar with Gradient Border */}
+          <div className="relative">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${isDarkMode
+              ? 'bg-gradient-to-br from-slate-700 to-slate-800 text-slate-200'
+              : 'bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600'
+              }`}>
+              <User className="w-5 h-5" strokeWidth={1.75} />
+            </div>
+            <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 ${isDarkMode ? 'bg-emerald-500/70 border-slate-800' : 'bg-emerald-400/70 border-white'}`}></div>
           </div>
           <div className="flex-1 min-w-0">
             <p className={`text-sm font-semibold truncate ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>
               {currentUser?.username || 'Admin'}
             </p>
-            <span className={`inline-flex items-center text-[10px] uppercase font-bold px-2 py-0.5 rounded-full mt-1 ${
-              isStudentMode
-                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                : isDarkMode
-                  ? 'bg-slate-700 text-slate-400'
-                  : 'bg-slate-100 text-slate-500'
-            }`}>
+            <span className={`inline-flex items-center text-[10px] uppercase font-bold px-2 py-0.5 rounded-full mt-1 ${isStudentMode
+              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+              : isDarkMode
+                ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
+                : 'bg-indigo-50 text-indigo-600 border border-indigo-200'
+              }`}>
               {isStudentMode ? 'Student (Preview)' : 'Administrator'}
             </span>
           </div>
