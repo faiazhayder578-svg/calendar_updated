@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import React, { useState, useRef, useEffect } from 'react';
+=======
+import { useState, useRef, useEffect } from 'react';
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
 import { Search, Star, Edit2, Trash2, CheckCircle2, AlertCircle, XCircle, Copy, Check } from 'lucide-react';
 import { encodeSchedule } from '../utils/scheduleEncoding';
 
@@ -15,10 +19,19 @@ const getInitials = (name) => {
 // Get a consistent color for instructor avatar based on name
 const getAvatarColor = (name) => {
   const colors = [
+<<<<<<< HEAD
     { bg: 'bg-teal-100 dark:bg-teal-500/20', text: 'text-teal-700 dark:text-teal-300' },
     { bg: 'bg-emerald-100 dark:bg-emerald-500/20', text: 'text-emerald-700 dark:text-emerald-300' },
     { bg: 'bg-teal-50 dark:bg-teal-400/20', text: 'text-teal-600 dark:text-teal-400' },
     { bg: 'bg-emerald-50 dark:bg-emerald-400/20', text: 'text-emerald-600 dark:text-emerald-400' },
+=======
+    { bg: 'bg-indigo-100 dark:bg-indigo-500/20', text: 'text-indigo-700 dark:text-indigo-300' },
+    { bg: 'bg-purple-100 dark:bg-purple-500/20', text: 'text-purple-700 dark:text-purple-300' },
+    { bg: 'bg-pink-100 dark:bg-pink-500/20', text: 'text-pink-700 dark:text-pink-300' },
+    { bg: 'bg-blue-100 dark:bg-blue-500/20', text: 'text-blue-700 dark:text-blue-300' },
+    { bg: 'bg-teal-100 dark:bg-teal-500/20', text: 'text-teal-700 dark:text-teal-300' },
+    { bg: 'bg-orange-100 dark:bg-orange-500/20', text: 'text-orange-700 dark:text-orange-300' },
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
   ];
   const hash = name?.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) || 0;
   return colors[hash % colors.length];
@@ -163,7 +176,11 @@ const ScheduleView = ({
           <h3 className={`text-sm font-bold uppercase tracking-wider ${isDarkMode ? 'text-slate-200' : 'text-stone-800'}`}>
             {isStudentMode ? 'Course Catalog' : 'Manage Courses'}
             {isStudentMode && favorites.length > 0 && (
+<<<<<<< HEAD
               <span className={`ml-3 text-xs px-2.5 py-1 rounded-full font-medium normal-case ${isDarkMode ? 'bg-teal-500/20 text-teal-300' : 'bg-teal-50 text-teal-700'}`}>
+=======
+              <span className={`ml-3 text-xs px-2.5 py-1 rounded-full font-medium normal-case ${isDarkMode ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-50 text-indigo-700'}`}>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                 {favorites.length} favorites
               </span>
             )}
@@ -173,7 +190,11 @@ const ScheduleView = ({
               value={sortConfig.key || 'courseCode'}
               onChange={(e) => handleSort(e.target.value)}
               className={`px-3 py-2 border-2 rounded-xl text-sm font-medium transition-all
+<<<<<<< HEAD
                 ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white focus:border-teal-500' : 'bg-white border-stone-200 text-stone-700 focus:border-teal-400'} focus:outline-none`}
+=======
+                ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white focus:border-indigo-500' : 'bg-white border-stone-200 text-stone-700 focus:border-indigo-400'} focus:outline-none`}
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
             >
               <option value="courseCode">Sort: Course</option>
               <option value="faculty">Sort: Instructor</option>
@@ -188,7 +209,11 @@ const ScheduleView = ({
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search..."
                 className={`pl-10 pr-4 py-2.5 border-2 rounded-xl text-sm w-64 transition-all
+<<<<<<< HEAD
                   ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-teal-500' : 'bg-white border-stone-200 text-stone-900 placeholder-stone-400 focus:border-teal-400'} focus:outline-none`}
+=======
+                  ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-indigo-500' : 'bg-white border-stone-200 text-stone-900 placeholder-stone-400 focus:border-indigo-400'} focus:outline-none`}
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
               />
             </div>
           </div>
@@ -200,7 +225,11 @@ const ScheduleView = ({
         <div className={`px-6 py-4 border-b flex justify-between items-center ${isDarkMode ? 'border-slate-700' : 'border-stone-100'}`}>
           <h3 className={`text-sm font-bold uppercase tracking-wider ${isDarkMode ? 'text-slate-200' : 'text-stone-800'}`}>
             Course Catalog
+<<<<<<< HEAD
             <span className={`ml-3 text-xs px-2.5 py-1 rounded-full font-medium normal-case ${isDarkMode ? 'bg-teal-500/20 text-teal-300' : 'bg-teal-50 text-teal-700'}`}>
+=======
+            <span className={`ml-3 text-xs px-2.5 py-1 rounded-full font-medium normal-case ${isDarkMode ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-50 text-indigo-700'}`}>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
               {classes.length} courses
             </span>
           </h3>
@@ -208,7 +237,11 @@ const ScheduleView = ({
             value={sortConfig.key || 'courseCode'}
             onChange={(e) => handleSort(e.target.value)}
             className={`px-3 py-2 border-2 rounded-xl text-sm font-medium transition-all
+<<<<<<< HEAD
               ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white focus:border-teal-500' : 'bg-white border-stone-200 text-stone-700 focus:border-teal-400'} focus:outline-none`}
+=======
+              ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white focus:border-indigo-500' : 'bg-white border-stone-200 text-stone-700 focus:border-indigo-400'} focus:outline-none`}
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
           >
             <option value="courseCode">Sort: Course</option>
             <option value="faculty">Sort: Instructor</option>
@@ -223,10 +256,17 @@ const ScheduleView = ({
           <thead className={`text-xs uppercase font-bold tracking-wider border-b ${isDarkMode ? 'bg-slate-700/50 text-slate-400 border-slate-700' : 'bg-stone-50 text-stone-500 border-stone-200'}`}>
             <tr>
               {isStudentMode && <th className="px-5 py-4 w-12">Fav</th>}
+<<<<<<< HEAD
               {!isStudentMode && <th className="px-5 py-4 w-16 cursor-pointer hover:text-teal-500" onClick={() => handleSort('id')}>#</th>}
               <th className="px-5 py-4 cursor-pointer hover:text-teal-500" onClick={() => handleSort('courseCode')}>Course</th>
               <th className="px-5 py-4 w-16">Sec</th>
               <th className="px-5 py-4 cursor-pointer hover:text-teal-500" onClick={() => handleSort('faculty')}>Instructor</th>
+=======
+              {!isStudentMode && <th className="px-5 py-4 w-16 cursor-pointer hover:text-indigo-500" onClick={() => handleSort('id')}>#</th>}
+              <th className="px-5 py-4 cursor-pointer hover:text-indigo-500" onClick={() => handleSort('courseCode')}>Course</th>
+              <th className="px-5 py-4 w-16">Sec</th>
+              <th className="px-5 py-4 cursor-pointer hover:text-indigo-500" onClick={() => handleSort('faculty')}>Instructor</th>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
               <th className="px-5 py-4">Room</th>
               <th className="px-5 py-4">Schedule</th>
               <th className="px-5 py-4 w-20">Code</th>
@@ -287,7 +327,11 @@ const ScheduleView = ({
                         className={`group flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-mono font-bold text-sm transition-all
                           ${copiedCode === cls.id
                             ? isDarkMode ? 'bg-emerald-500/20 text-emerald-300' : 'bg-emerald-100 text-emerald-700'
+<<<<<<< HEAD
                             : isDarkMode ? 'bg-teal-500/20 text-teal-300 hover:bg-teal-500/30' : 'bg-teal-50 text-teal-700 hover:bg-teal-100'}`}
+=======
+                            : isDarkMode ? 'bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30' : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'}`}
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                         title="Click to copy"
                       >
                         {code}
@@ -322,4 +366,8 @@ const ScheduleView = ({
   );
 };
 
+<<<<<<< HEAD
 export default React.memo(ScheduleView);
+=======
+export default ScheduleView;
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe

@@ -61,12 +61,21 @@ const Dashboard = ({ classes, reviews = {}, isDarkMode }) => {
       value: stats.totalClasses,
       subtitle: 'Active courses',
       icon: BookOpen,
+<<<<<<< HEAD
       gradient: 'from-[#124d54] to-[#104449]',
       shadowColor: 'shadow-teal-500/20',
       bgLight: 'bg-teal-50',
       bgDark: 'bg-teal-500/20',
       textLight: 'text-teal-600',
       textDark: 'text-teal-400'
+=======
+      gradient: 'from-indigo-500 to-indigo-600',
+      shadowColor: 'shadow-indigo-500/20',
+      bgLight: 'bg-indigo-50',
+      bgDark: 'bg-indigo-500/20',
+      textLight: 'text-indigo-600',
+      textDark: 'text-indigo-400'
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
     },
     {
       label: 'Total Students',
@@ -85,24 +94,42 @@ const Dashboard = ({ classes, reviews = {}, isDarkMode }) => {
       value: `${stats.utilizationRate}%`,
       subtitle: 'Capacity filled',
       icon: TrendingUp,
+<<<<<<< HEAD
       gradient: 'from-[#124d54] to-[#0d6e75]',
       shadowColor: 'shadow-teal-500/20',
       bgLight: 'bg-teal-50',
       bgDark: 'bg-teal-500/20',
       textLight: 'text-teal-600',
       textDark: 'text-teal-400'
+=======
+      gradient: 'from-amber-500 to-orange-600',
+      shadowColor: 'shadow-amber-500/20',
+      bgLight: 'bg-amber-50',
+      bgDark: 'bg-amber-500/20',
+      textLight: 'text-amber-600',
+      textDark: 'text-amber-400'
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
     },
     {
       label: 'Available Seats',
       value: stats.availableSeats,
       subtitle: 'Open spots',
       icon: Armchair,
+<<<<<<< HEAD
       gradient: 'from-[#339fa7] to-[#166b74]',
       shadowColor: 'shadow-teal-400/20',
       bgLight: 'bg-teal-50',
       bgDark: 'bg-teal-500/20',
       textLight: 'text-teal-600',
       textDark: 'text-teal-400'
+=======
+      gradient: 'from-purple-500 to-pink-600',
+      shadowColor: 'shadow-purple-500/20',
+      bgLight: 'bg-purple-50',
+      bgDark: 'bg-purple-500/20',
+      textLight: 'text-purple-600',
+      textDark: 'text-purple-400'
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
     }
   ];
 
@@ -113,7 +140,11 @@ const Dashboard = ({ classes, reviews = {}, isDarkMode }) => {
         {statCards.map((card, index) => {
           const Icon = card.icon;
           return (
+<<<<<<< HEAD
             <div
+=======
+            <div 
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
               key={index}
               className={`group relative rounded-2xl p-6 transition-all duration-300 cursor-default overflow-hidden
                 ${isDarkMode
@@ -124,7 +155,11 @@ const Dashboard = ({ classes, reviews = {}, isDarkMode }) => {
             >
               {/* Gradient Accent Line */}
               <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${card.gradient} opacity-80`}></div>
+<<<<<<< HEAD
 
+=======
+              
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
                   <p className={`text-xs font-semibold uppercase tracking-wider ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
@@ -158,8 +193,13 @@ const Dashboard = ({ classes, reviews = {}, isDarkMode }) => {
           <div className={`px-6 py-4 border-b flex justify-between items-center ${isDarkMode ? 'border-slate-700 bg-slate-800/50' : 'border-slate-100 bg-slate-50/50'
             }`}>
             <div className="flex items-center gap-3">
+<<<<<<< HEAD
               <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-teal-500/20' : 'bg-teal-50'}`}>
                 <TrendingUp className={`w-4 h-4 ${isDarkMode ? 'text-teal-400' : 'text-teal-600'}`} strokeWidth={1.75} />
+=======
+              <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-amber-500/20' : 'bg-amber-50'}`}>
+                <TrendingUp className={`w-4 h-4 ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`} strokeWidth={1.75} />
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
               </div>
               <h3 className={`text-sm font-semibold uppercase tracking-wider ${isDarkMode ? 'text-slate-300' : 'text-slate-700'
                 }`}>
@@ -179,12 +219,21 @@ const Dashboard = ({ classes, reviews = {}, isDarkMode }) => {
                   <div key={cls.id} className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-200
                     ${isDarkMode ? 'hover:bg-slate-700/50' : 'hover:bg-slate-50'}`}>
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 transition-transform duration-200 group-hover:scale-110
+<<<<<<< HEAD
                       ${index === 0
                         ? 'bg-gradient-to-br from-[#124d54] to-[#339fa7] text-white shadow-lg shadow-teal-500/30'
                         : index === 1
                           ? 'bg-gradient-to-br from-[#339fa7] to-[#66b7bd] text-white shadow-lg shadow-teal-400/30'
                           : index === 2
                             ? 'bg-gradient-to-br from-[#66b7bd] to-[#99cfd3] text-white shadow-lg shadow-teal-300/30'
+=======
+                      ${index === 0 
+                        ? 'bg-gradient-to-br from-amber-400 to-amber-500 text-white shadow-lg shadow-amber-500/30' 
+                        : index === 1 
+                          ? 'bg-gradient-to-br from-slate-300 to-slate-400 text-white shadow-lg shadow-slate-400/30'
+                          : index === 2 
+                            ? 'bg-gradient-to-br from-orange-400 to-orange-500 text-white shadow-lg shadow-orange-500/30'
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                             : isDarkMode ? 'bg-slate-700 text-slate-400' : 'bg-slate-100 text-slate-500'
                       }`}>
                       {index + 1}
@@ -206,12 +255,22 @@ const Dashboard = ({ classes, reviews = {}, isDarkMode }) => {
                       </p>
                       <div className={`w-24 h-2 rounded-full mt-2 overflow-hidden ${isDarkMode ? 'bg-slate-700' : 'bg-slate-200'}`}>
                         <div
+<<<<<<< HEAD
                           className={`h-full rounded-full transition-all duration-500 ${(cls.enrolled / cls.maxCapacity) >= 1
                             ? 'bg-gradient-to-r from-red-500 to-rose-500'
                             : (cls.enrolled / cls.maxCapacity) >= 0.8
                               ? 'bg-gradient-to-r from-amber-500 to-orange-500'
                               : 'bg-gradient-to-r from-emerald-500 to-teal-500'
                             }`}
+=======
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            (cls.enrolled / cls.maxCapacity) >= 1 
+                              ? 'bg-gradient-to-r from-red-500 to-rose-500' 
+                              : (cls.enrolled / cls.maxCapacity) >= 0.8 
+                                ? 'bg-gradient-to-r from-amber-500 to-orange-500' 
+                                : 'bg-gradient-to-r from-emerald-500 to-teal-500'
+                          }`}
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                           style={{ width: `${Math.min((cls.enrolled / cls.maxCapacity) * 100, 100)}%` }}
                         />
                       </div>
@@ -227,4 +286,8 @@ const Dashboard = ({ classes, reviews = {}, isDarkMode }) => {
   );
 };
 
+<<<<<<< HEAD
 export default React.memo(Dashboard);
+=======
+export default Dashboard;
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe

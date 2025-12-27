@@ -38,7 +38,11 @@ const AcademicCalendarModal = ({ isOpen, closeModal, academicEvents, setAcademic
   const eventTypes = [
     { value: 'holiday', label: 'Holiday', color: 'red' },
     { value: 'exam', label: 'Final Exam', color: 'purple' },
+<<<<<<< HEAD
     { value: 'advising', label: 'Advising', color: 'teal' },
+=======
+    { value: 'advising', label: 'Advising', color: 'blue' },
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
     { value: 'evaluation', label: 'Faculty Evaluation', color: 'orange' },
     { value: 'registration', label: 'Registration', color: 'green' },
     { value: 'break', label: 'Break/Recess', color: 'yellow' },
@@ -415,8 +419,13 @@ const AcademicCalendarModal = ({ isOpen, closeModal, academicEvents, setAcademic
           </div>
           <button
             onClick={closeModal}
+<<<<<<< HEAD
             className={`p-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isDarkMode
               ? 'hover:bg-slate-700 text-slate-400 hover:text-white focus:ring-slate-500'
+=======
+            className={`p-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isDarkMode 
+              ? 'hover:bg-slate-700 text-slate-400 hover:text-white focus:ring-slate-500' 
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
               : 'hover:bg-slate-100 text-slate-500 hover:text-slate-900 focus:ring-slate-400'
               }`}
           >
@@ -636,7 +645,11 @@ const AcademicCalendarModal = ({ isOpen, closeModal, academicEvents, setAcademic
 
             <button
               onClick={handleAddEvent}
+<<<<<<< HEAD
               className="mt-4 w-full px-4 py-2 bg-[#124d54] text-white rounded-lg hover:bg-[#094044] transition-colors flex items-center justify-center gap-2"
+=======
+              className="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
             >
               <Plus className="w-4 h-4" />
               Add Event

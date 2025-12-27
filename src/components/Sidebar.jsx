@@ -17,8 +17,13 @@ const Sidebar = ({
   const getNavItemClasses = (isActive, isDestructive = false) => {
     const baseClasses = "w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
     const focusRingColor = isDarkMode
+<<<<<<< HEAD
       ? 'focus-visible:ring-teal-400 focus-visible:ring-offset-slate-800'
       : 'focus-visible:ring-teal-500 focus-visible:ring-offset-white';
+=======
+      ? 'focus-visible:ring-indigo-400 focus-visible:ring-offset-slate-800'
+      : 'focus-visible:ring-indigo-500 focus-visible:ring-offset-white';
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
 
     if (isDestructive) {
       return `${baseClasses} ${focusRingColor} ${isDarkMode
@@ -62,7 +67,11 @@ const Sidebar = ({
       <div className={`h-20 flex items-center px-6 border-b shrink-0 ${isDarkMode ? 'border-slate-700/50' : 'border-slate-200/50'
         }`}>
         <div className={`flex items-center gap-3 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+<<<<<<< HEAD
           <div className="sidebar-logo-icon p-2.5 rounded-xl text-white shadow-lg shrink-0 bg-gradient-to-br from-[#124d54] to-[#339fa7]">
+=======
+          <div className="sidebar-logo-icon p-2.5 rounded-xl text-white shadow-lg shrink-0">
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
             <Layers className="w-5 h-5" strokeWidth={1.75} />
           </div>
           <div className="sidebar-text min-w-0">
@@ -84,7 +93,11 @@ const Sidebar = ({
           <BarChart2 className={activeView === 'dashboard' ? iconActiveClasses : iconInactiveClasses} strokeWidth={1.75} />
           <span>Dashboard</span>
           {activeView === 'dashboard' && (
+<<<<<<< HEAD
             <span className={`ml-auto w-1.5 h-1.5 rounded-full ${isDarkMode ? 'bg-teal-400/40' : 'bg-teal-400/50'}`}></span>
+=======
+            <span className={`ml-auto w-1.5 h-1.5 rounded-full ${isDarkMode ? 'bg-indigo-400/40' : 'bg-indigo-400/50'}`}></span>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
           )}
         </button>
 
@@ -95,7 +108,11 @@ const Sidebar = ({
           <Calendar className={activeView === 'schedule' ? iconActiveClasses : iconInactiveClasses} strokeWidth={1.75} />
           <span>Class Schedule</span>
           {activeView === 'schedule' && (
+<<<<<<< HEAD
             <span className={`ml-auto w-1.5 h-1.5 rounded-full ${isDarkMode ? 'bg-teal-400/40' : 'bg-teal-400/50'}`}></span>
+=======
+            <span className={`ml-auto w-1.5 h-1.5 rounded-full ${isDarkMode ? 'bg-indigo-400/40' : 'bg-indigo-400/50'}`}></span>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
           )}
         </button>
 
@@ -108,7 +125,11 @@ const Sidebar = ({
             <Users className={activeView === 'instructors' ? iconActiveClasses : iconInactiveClasses} strokeWidth={1.75} />
             <span>Instructor Availability</span>
             {activeView === 'instructors' && (
+<<<<<<< HEAD
               <span className={`ml-auto w-1.5 h-1.5 rounded-full ${isDarkMode ? 'bg-teal-400/40' : 'bg-teal-400/50'}`}></span>
+=======
+              <span className={`ml-auto w-1.5 h-1.5 rounded-full ${isDarkMode ? 'bg-indigo-400/40' : 'bg-indigo-400/50'}`}></span>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
             )}
           </button>
         )}
@@ -121,7 +142,11 @@ const Sidebar = ({
           <CalendarDays className={activeView === 'calendar' ? iconActiveClasses : iconInactiveClasses} strokeWidth={1.75} />
           <span>Calendar View</span>
           {activeView === 'calendar' && (
+<<<<<<< HEAD
             <span className={`ml-auto w-1.5 h-1.5 rounded-full ${isDarkMode ? 'bg-teal-400/40' : 'bg-teal-400/50'}`}></span>
+=======
+            <span className={`ml-auto w-1.5 h-1.5 rounded-full ${isDarkMode ? 'bg-indigo-400/40' : 'bg-indigo-400/50'}`}></span>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
           )}
         </button>
 
@@ -214,8 +239,13 @@ const Sidebar = ({
             <span className={`inline-flex items-center text-[10px] uppercase font-bold px-2 py-0.5 rounded-full mt-1 ${isStudentMode
               ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
               : isDarkMode
+<<<<<<< HEAD
                 ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30'
                 : 'bg-teal-50 text-teal-600 border border-teal-200'
+=======
+                ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
+                : 'bg-indigo-50 text-indigo-600 border border-indigo-200'
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
               }`}>
               {isStudentMode ? 'Student (Preview)' : 'Administrator'}
             </span>

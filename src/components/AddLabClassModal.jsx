@@ -68,10 +68,17 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
   useEffect(() => {
     if (isOpen && theoryCourse) {
       // Generate lab course code by appending 'L'
+<<<<<<< HEAD
       const labCourseCode = theoryCourse.courseCode.endsWith('L')
         ? theoryCourse.courseCode
         : `${theoryCourse.courseCode}L`;
 
+=======
+      const labCourseCode = theoryCourse.courseCode.endsWith('L') 
+        ? theoryCourse.courseCode 
+        : `${theoryCourse.courseCode}L`;
+      
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
       // Section is locked to match theory class section
       setFormData({
         courseCode: labCourseCode,
@@ -141,11 +148,21 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
         onClick={closeModal}
       />
       {/* Modal container with animation */}
+<<<<<<< HEAD
       <div className={`relative w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden animate-modal-enter ${isDarkMode ? 'bg-slate-800 shadow-slate-900/50' : 'bg-white shadow-slate-200'
         }`}>
         {/* Header with clear title and close button */}
         <div className={`px-6 py-4 border-b flex justify-between items-center ${isDarkMode ? 'border-slate-700 bg-gradient-to-r from-teal-900/30 to-emerald-900/30' : 'border-slate-100 bg-gradient-to-r from-teal-50 to-emerald-50'
           }`}>
+=======
+      <div className={`relative w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden animate-modal-enter ${
+        isDarkMode ? 'bg-slate-800 shadow-slate-900/50' : 'bg-white shadow-slate-200'
+      }`}>
+        {/* Header with clear title and close button */}
+        <div className={`px-6 py-4 border-b flex justify-between items-center ${
+          isDarkMode ? 'border-slate-700 bg-gradient-to-r from-purple-900/30 to-blue-900/30' : 'border-slate-100 bg-gradient-to-r from-purple-50 to-blue-50'
+        }`}>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
           <div className="flex items-center gap-3">
             <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-purple-900/50' : 'bg-purple-100'}`}>
               <FlaskConical className={`w-5 h-5 ${isDarkMode ? 'text-purple-300' : 'text-purple-600'}`} strokeWidth={1.75} />
@@ -161,10 +178,18 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
           </div>
           <button
             onClick={closeModal}
+<<<<<<< HEAD
             className={`p-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isDarkMode
                 ? 'text-slate-400 hover:text-white hover:bg-slate-700/50 focus:ring-purple-500'
                 : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 focus:ring-purple-400'
               }`}
+=======
+            className={`p-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+              isDarkMode 
+                ? 'text-slate-400 hover:text-white hover:bg-slate-700/50 focus:ring-purple-500' 
+                : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 focus:ring-purple-400'
+            }`}
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
           >
             <X className="w-5 h-5" strokeWidth={1.75} />
           </button>
@@ -173,8 +198,14 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5 max-h-[60vh] overflow-y-auto">
           <div className="grid grid-cols-2 gap-5">
             <div className="space-y-1.5">
+<<<<<<< HEAD
               <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
                 }`}>
+=======
+              <label className={`text-xs font-semibold uppercase tracking-wide ${
+                isDarkMode ? 'text-slate-400' : 'text-slate-500'
+              }`}>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                 Lab Course Code
               </label>
               <input
@@ -184,6 +215,7 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
                 onChange={handleInputChange}
                 required
                 placeholder="e.g. CSE115L"
+<<<<<<< HEAD
                 className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${isDarkMode
                     ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400'
                     : 'bg-white border-slate-200 placeholder-slate-400'
@@ -193,6 +225,19 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
             <div className="space-y-1.5">
               <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
                 }`}>
+=======
+                className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
+                  isDarkMode
+                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400'
+                    : 'bg-white border-slate-200 placeholder-slate-400'
+                }`}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className={`text-xs font-semibold uppercase tracking-wide ${
+                isDarkMode ? 'text-slate-400' : 'text-slate-500'
+              }`}>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                 Section (Inherited)
               </label>
               <input
@@ -200,10 +245,18 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
                 name="section"
                 value={formData.section}
                 readOnly
+<<<<<<< HEAD
                 className={`w-full px-4 py-2.5 border rounded-lg text-sm cursor-not-allowed ${isDarkMode
                     ? 'bg-slate-700/50 border-slate-600 text-slate-400'
                     : 'bg-slate-100 border-slate-200 text-slate-600'
                   }`}
+=======
+                className={`w-full px-4 py-2.5 border rounded-lg text-sm cursor-not-allowed ${
+                  isDarkMode
+                    ? 'bg-slate-700/50 border-slate-600 text-slate-400'
+                    : 'bg-slate-100 border-slate-200 text-slate-600'
+                }`}
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
               />
               <p className={`text-xs mt-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`}>
                 Same as theory class section
@@ -212,8 +265,14 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
           </div>
 
           <div className="space-y-1.5">
+<<<<<<< HEAD
             <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
               }`}>
+=======
+            <label className={`text-xs font-semibold uppercase tracking-wide ${
+              isDarkMode ? 'text-slate-400' : 'text-slate-500'
+            }`}>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
               Lab Instructor
             </label>
             <input
@@ -223,27 +282,49 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
               onChange={handleInputChange}
               required
               placeholder="e.g. Dr. Rezwanul Huq"
+<<<<<<< HEAD
               className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${isDarkMode
                   ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400'
                   : 'bg-white border-slate-200 placeholder-slate-400'
                 }`}
+=======
+              className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
+                isDarkMode
+                  ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400'
+                  : 'bg-white border-slate-200 placeholder-slate-400'
+              }`}
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
             />
           </div>
 
           <div className="grid grid-cols-2 gap-5">
             <div className="space-y-1.5">
+<<<<<<< HEAD
               <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
                 }`}>
+=======
+              <label className={`text-xs font-semibold uppercase tracking-wide ${
+                isDarkMode ? 'text-slate-400' : 'text-slate-500'
+              }`}>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                 Day
               </label>
               <select
                 name="days"
                 value={formData.days}
                 onChange={handleInputChange}
+<<<<<<< HEAD
                 className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer ${isDarkMode
                     ? 'bg-slate-700 border-slate-600 text-white'
                     : 'bg-white border-slate-200'
                   }`}
+=======
+                className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer ${
+                  isDarkMode
+                    ? 'bg-slate-700 border-slate-600 text-white'
+                    : 'bg-white border-slate-200'
+                }`}
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
               >
                 {labDays.map(day => (
                   <option key={day.value} value={day.value}>{day.label}</option>
@@ -251,18 +332,32 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
               </select>
             </div>
             <div className="space-y-1.5">
+<<<<<<< HEAD
               <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
                 }`}>
+=======
+              <label className={`text-xs font-semibold uppercase tracking-wide ${
+                isDarkMode ? 'text-slate-400' : 'text-slate-500'
+              }`}>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                 Lab Time Slot
               </label>
               <select
                 name="time"
                 value={formData.time}
                 onChange={handleInputChange}
+<<<<<<< HEAD
                 className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer ${isDarkMode
                     ? 'bg-slate-700 border-slate-600 text-white'
                     : 'bg-white border-slate-200'
                   }`}
+=======
+                className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer ${
+                  isDarkMode
+                    ? 'bg-slate-700 border-slate-600 text-white'
+                    : 'bg-white border-slate-200'
+                }`}
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
               >
                 {labTimeSlots.map(slot => (
                   <option key={slot} value={slot}>{slot}</option>
@@ -275,8 +370,14 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
           {formData.faculty && (
             <div className="mt-2">
               {checkingAvailability ? (
+<<<<<<< HEAD
                 <div className={`flex items-center gap-2.5 p-3.5 rounded-xl ${isDarkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'
                   }`}>
+=======
+                <div className={`flex items-center gap-2.5 p-3.5 rounded-xl ${
+                  isDarkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'
+                }`}>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                   <div className="animate-spin rounded-full h-4 w-4 border-2 border-purple-400 border-t-transparent"></div>
                   <span className="text-sm">Checking instructor availability...</span>
                 </div>
@@ -289,8 +390,14 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
                   </div>
                 </div>
               ) : availabilityStatus && availabilityStatus.available ? (
+<<<<<<< HEAD
                 <div className={`flex items-center gap-2.5 p-3.5 rounded-xl ${isDarkMode ? 'bg-green-900/20 border border-green-500/20 text-green-400' : 'bg-green-50 border border-green-200 text-green-700'
                   }`}>
+=======
+                <div className={`flex items-center gap-2.5 p-3.5 rounded-xl ${
+                  isDarkMode ? 'bg-green-900/20 border border-green-500/20 text-green-400' : 'bg-green-50 border border-green-200 text-green-700'
+                }`}>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                   <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
                   <span className="text-sm font-medium">Instructor is available for this lab slot</span>
                 </div>
@@ -310,8 +417,14 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
               isLabClass={true}
             />
             <div className="space-y-1.5">
+<<<<<<< HEAD
               <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
                 }`}>
+=======
+              <label className={`text-xs font-semibold uppercase tracking-wide ${
+                isDarkMode ? 'text-slate-400' : 'text-slate-500'
+              }`}>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                 Max Capacity
               </label>
               <input
@@ -319,10 +432,18 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
                 name="maxCapacity"
                 value={formData.maxCapacity}
                 onChange={handleInputChange}
+<<<<<<< HEAD
                 className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${isDarkMode
                     ? 'bg-slate-700 border-slate-600 text-white'
                     : 'bg-white border-slate-200'
                   }`}
+=======
+                className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
+                  isDarkMode
+                    ? 'bg-slate-700 border-slate-600 text-white'
+                    : 'bg-white border-slate-200'
+                }`}
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
               />
             </div>
           </div>
@@ -330,12 +451,22 @@ const AddLabClassModal = ({ isOpen, closeModal, theoryCourse, handleAddClass, is
           <button
             type="submit"
             disabled={availabilityStatus && !availabilityStatus.available}
+<<<<<<< HEAD
             className={`w-full inline-flex items-center justify-center gap-2 font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-[0.98] mt-2 ${availabilityStatus && !availabilityStatus.available
                 ? 'bg-slate-400 cursor-not-allowed text-slate-200'
                 : isDarkMode
                   ? 'bg-gradient-to-r from-[#124d54] to-[#339fa7] hover:from-[#094044] hover:to-[#124d54] text-white focus:ring-teal-400'
                   : 'bg-gradient-to-r from-[#124d54] to-[#339fa7] hover:from-[#094044] hover:to-[#124d54] text-white focus:ring-teal-400'
               }`}
+=======
+            className={`w-full inline-flex items-center justify-center gap-2 font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-[0.98] mt-2 ${
+              availabilityStatus && !availabilityStatus.available
+                ? 'bg-slate-400 cursor-not-allowed text-slate-200'
+                : isDarkMode
+                ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white focus:ring-purple-400'
+                : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white focus:ring-purple-400'
+            }`}
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
           >
             Create Lab Class
           </button>

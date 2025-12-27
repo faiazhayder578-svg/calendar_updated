@@ -39,8 +39,14 @@ const InstructorAvailability = ({ isDarkMode }) => {
 
   if (error) {
     return (
+<<<<<<< HEAD
       <div className={`p-4 rounded-lg border ${isDarkMode ? 'bg-red-900/20 border-red-800 text-red-300' : 'bg-red-50 border-red-200 text-red-700'
         }`}>
+=======
+      <div className={`p-4 rounded-lg border ${
+        isDarkMode ? 'bg-red-900/20 border-red-800 text-red-300' : 'bg-red-50 border-red-200 text-red-700'
+      }`}>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
         <p>{error}</p>
       </div>
     );
@@ -59,14 +65,21 @@ const InstructorAvailability = ({ isDarkMode }) => {
       </div>
 
       {/* Info Banner */}
+<<<<<<< HEAD
       <div className={`p-4 rounded-lg border ${isDarkMode ? 'bg-teal-900/20 border-teal-800 text-teal-300' : 'bg-teal-50 border-teal-200 text-teal-700'
         }`}>
+=======
+      <div className={`p-4 rounded-lg border ${
+        isDarkMode ? 'bg-blue-900/20 border-blue-800 text-blue-300' : 'bg-blue-50 border-blue-200 text-blue-700'
+      }`}>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
         <p className="text-sm">
           This data is managed by the system administrator. Contact the admin office to update instructor availability.
         </p>
       </div>
 
       {/* Instructors Table */}
+<<<<<<< HEAD
       <div className={`rounded-xl shadow-sm border overflow-hidden ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
         }`}>
         <div className="overflow-x-auto">
@@ -75,6 +88,18 @@ const InstructorAvailability = ({ isDarkMode }) => {
                 ? 'bg-slate-700/50 text-slate-400 border-slate-700'
                 : 'bg-slate-50 text-slate-500 border-slate-100'
               }`}>
+=======
+      <div className={`rounded-xl shadow-sm border overflow-hidden ${
+        isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
+      }`}>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead className={`text-xs uppercase font-semibold tracking-wider border-b ${
+              isDarkMode
+                ? 'bg-slate-700/50 text-slate-400 border-slate-700'
+                : 'bg-slate-50 text-slate-500 border-slate-100'
+            }`}>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
               <tr>
                 <th className="px-6 py-4">Initials</th>
                 <th className="px-6 py-4">Full Name</th>
@@ -82,12 +107,23 @@ const InstructorAvailability = ({ isDarkMode }) => {
                 <th className="px-6 py-4">Preferable Time Slots</th>
               </tr>
             </thead>
+<<<<<<< HEAD
             <tbody className={`divide-y text-sm ${isDarkMode ? 'divide-slate-700 text-slate-300' : 'divide-slate-50 text-slate-600'
               }`}>
               {instructors.length === 0 ? (
                 <tr>
                   <td colSpan="4" className={`px-6 py-8 text-center ${isDarkMode ? 'text-slate-400' : 'text-slate-400'
                     }`}>
+=======
+            <tbody className={`divide-y text-sm ${
+              isDarkMode ? 'divide-slate-700 text-slate-300' : 'divide-slate-50 text-slate-600'
+            }`}>
+              {instructors.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className={`px-6 py-8 text-center ${
+                    isDarkMode ? 'text-slate-400' : 'text-slate-400'
+                  }`}>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                     No instructor data available.
                   </td>
                 </tr>
@@ -95,6 +131,7 @@ const InstructorAvailability = ({ isDarkMode }) => {
                 instructors.map((instructor) => (
                   <tr
                     key={instructor.id}
+<<<<<<< HEAD
                     className={`transition-colors ${isDarkMode ? 'hover:bg-slate-700/50' : 'hover:bg-slate-50'
                       }`}
                   >
@@ -106,6 +143,22 @@ const InstructorAvailability = ({ isDarkMode }) => {
                     </td>
                     <td className={`px-6 py-4 font-medium ${isDarkMode ? 'text-white' : 'text-slate-800'
                       }`}>
+=======
+                    className={`transition-colors ${
+                      isDarkMode ? 'hover:bg-slate-700/50' : 'hover:bg-slate-50'
+                    }`}
+                  >
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center justify-center w-10 h-10 rounded-full font-bold text-sm ${
+                        isDarkMode ? 'bg-slate-700 text-white' : 'bg-slate-200 text-slate-700'
+                      }`}>
+                        {instructor.initials}
+                      </span>
+                    </td>
+                    <td className={`px-6 py-4 font-medium ${
+                      isDarkMode ? 'text-white' : 'text-slate-800'
+                    }`}>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                       {instructor.fullName}
                     </td>
                     <td className="px-6 py-4">
@@ -113,10 +166,18 @@ const InstructorAvailability = ({ isDarkMode }) => {
                         {(instructor.preferableCourses || "").split(',').filter(c => c.trim()).map((course, idx) => (
                           <span
                             key={idx}
+<<<<<<< HEAD
                             className={`px-2 py-1 rounded text-xs font-medium ${isDarkMode
                                 ? 'bg-teal-900/30 text-teal-300'
                                 : 'bg-teal-50 text-teal-700'
                               }`}
+=======
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              isDarkMode
+                                ? 'bg-blue-900/30 text-blue-300'
+                                : 'bg-blue-50 text-blue-700'
+                            }`}
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                           >
                             {course.trim()}
                           </span>
@@ -128,10 +189,18 @@ const InstructorAvailability = ({ isDarkMode }) => {
                         {(instructor.preferableTimes || []).map((time, idx) => (
                           <span
                             key={idx}
+<<<<<<< HEAD
                             className={`px-2 py-1 rounded text-xs font-mono font-medium ${isDarkMode
                                 ? 'bg-emerald-900/30 text-emerald-300'
                                 : 'bg-emerald-50 text-emerald-700'
                               }`}
+=======
+                            className={`px-2 py-1 rounded text-xs font-mono font-medium ${
+                              isDarkMode
+                                ? 'bg-emerald-900/30 text-emerald-300'
+                                : 'bg-emerald-50 text-emerald-700'
+                            }`}
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                           >
                             {time}
                           </span>
@@ -147,8 +216,14 @@ const InstructorAvailability = ({ isDarkMode }) => {
       </div>
 
       {/* Legend */}
+<<<<<<< HEAD
       <div className={`p-4 rounded-lg border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'
         }`}>
+=======
+      <div className={`p-4 rounded-lg border ${
+        isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'
+      }`}>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
         <h4 className={`text-sm font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
           Time Slot Codes
         </h4>

@@ -1,11 +1,19 @@
 import { useState } from 'react';
 import { Building2, X, Check, AlertTriangle } from 'lucide-react';
 
+<<<<<<< HEAD
 const RoomSelector = ({
   selectedRoom,
   onSelectRoom,
   selectedDays,
   selectedTime,
+=======
+const RoomSelector = ({ 
+  selectedRoom, 
+  onSelectRoom, 
+  selectedDays, 
+  selectedTime, 
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
   isDarkMode,
   existingClasses = [],
   editingClassId = null,
@@ -18,7 +26,11 @@ const RoomSelector = ({
   // Building structure: floors and rooms
   // NAC = North Academic Center, SAC = South Academic Center, LIB = Library Building
   // Each floor has 15 rooms, room numbers follow floor (e.g., 6th floor = 601-615)
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
   const generateRooms = (buildingCode, floor, count = 15) => {
     const rooms = [];
     for (let i = 1; i <= count; i++) {
@@ -64,12 +76,20 @@ const RoomSelector = ({
   // Get occupied rooms for the selected time slot
   const getOccupiedRooms = () => {
     if (!selectedDays || !selectedTime) return new Set();
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
     const occupied = new Set();
     existingClasses.forEach(cls => {
       // Skip the class being edited
       if (editingClassId && cls.id === editingClassId) return;
+<<<<<<< HEAD
 
+=======
+      
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
       // Check if this class conflicts with selected time
       if (cls.days === selectedDays && cls.time === selectedTime) {
         occupied.add(cls.room);
@@ -85,7 +105,11 @@ const RoomSelector = ({
   // Check if room is allowed based on class type
   const isRoomAllowed = (room) => {
     const isLibRoom = room.startsWith('LIB');
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
     if (isLabClass) {
       // Lab classes can ONLY use LIB rooms
       return isLibRoom;
@@ -97,7 +121,11 @@ const RoomSelector = ({
 
   const handleRoomClick = (room) => {
     if (isRoomOccupied(room)) return;
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
     // Check room type restriction
     if (!isRoomAllowed(room)) {
       if (isLabClass) {
@@ -108,7 +136,11 @@ const RoomSelector = ({
       setShowWarning(true);
       return;
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
     onSelectRoom(room);
     setIsOpen(false);
   };
@@ -124,14 +156,22 @@ const RoomSelector = ({
         ? 'bg-red-900/50 border-red-700 text-red-400 cursor-not-allowed'
         : 'bg-red-100 border-red-300 text-red-600 cursor-not-allowed';
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
     // Restricted rooms (wrong building type)
     if (!isAllowed) {
       return isDarkMode
         ? 'bg-slate-700/50 border-slate-600 text-slate-500 cursor-not-allowed opacity-50'
         : 'bg-slate-100 border-slate-300 text-slate-400 cursor-not-allowed opacity-50';
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
     // Selected room
     if (isSelected) {
       return isDarkMode
@@ -147,19 +187,36 @@ const RoomSelector = ({
 
   return (
     <div className="space-y-1.5">
+<<<<<<< HEAD
       <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
         }`}>
         Room
       </label>
 
+=======
+      <label className={`text-xs font-semibold uppercase tracking-wide ${
+        isDarkMode ? 'text-slate-400' : 'text-slate-500'
+      }`}>
+        Room
+      </label>
+      
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
       {/* Selected Room Display / Trigger Button */}
       <button
         type="button"
         onClick={() => setIsOpen(true)}
+<<<<<<< HEAD
         className={`w-full px-3 py-2 border rounded-lg text-left flex items-center gap-1 transition-all ${isDarkMode
             ? 'bg-slate-700 border-slate-600 text-white hover:border-slate-500'
             : 'bg-white border-slate-300 text-slate-800 hover:border-slate-400'
           }`}
+=======
+        className={`w-full px-3 py-2 border rounded-lg text-left flex items-center gap-1 transition-all ${
+          isDarkMode
+            ? 'bg-slate-700 border-slate-600 text-white hover:border-slate-500'
+            : 'bg-white border-slate-300 text-slate-800 hover:border-slate-400'
+        }`}
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
       >
         <Building2 className="w-4 h-4 flex-shrink-0" />
         <span className="font-medium">{selectedRoom || 'Select a room'}</span>
@@ -171,6 +228,7 @@ const RoomSelector = ({
       {/* Room Selector Modal */}
       {isOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center">
+<<<<<<< HEAD
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setIsOpen(false)}
@@ -180,26 +238,50 @@ const RoomSelector = ({
             {/* Header */}
             <div className={`sticky top-0 px-6 py-4 border-b flex justify-between items-center ${isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'
               }`}>
+=======
+          <div 
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setIsOpen(false)}
+          />
+          <div className={`relative w-full max-w-4xl max-h-[90vh] overflow-auto rounded-2xl shadow-2xl ${
+            isDarkMode ? 'bg-slate-800' : 'bg-white'
+          }`}>
+            {/* Header */}
+            <div className={`sticky top-0 px-6 py-4 border-b flex justify-between items-center ${
+              isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'
+            }`}>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
               <div>
                 <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
                   Select Room
                 </h3>
                 <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+<<<<<<< HEAD
                   {selectedDays && selectedTime
+=======
+                  {selectedDays && selectedTime 
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                     ? `Showing availability for ${selectedDays} at ${selectedTime}`
                     : 'Select days and time to see room availability'}
                 </p>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
+<<<<<<< HEAD
                 className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-100 text-slate-600'
                   }`}
+=======
+                className={`p-2 rounded-lg transition-colors ${
+                  isDarkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-100 text-slate-600'
+                }`}
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Legend */}
+<<<<<<< HEAD
             <div className={`px-6 py-3 border-b flex flex-wrap items-center gap-4 ${isDarkMode ? 'border-slate-700 bg-slate-800/50' : 'border-slate-100 bg-slate-50'
               }`}>
               <div className="flex items-center gap-2">
@@ -220,14 +302,49 @@ const RoomSelector = ({
               <div className="flex items-center gap-2">
                 <div className={`w-6 h-6 rounded border-2 opacity-50 ${isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-100 border-slate-300'
                   }`}></div>
+=======
+            <div className={`px-6 py-3 border-b flex flex-wrap items-center gap-4 ${
+              isDarkMode ? 'border-slate-700 bg-slate-800/50' : 'border-slate-100 bg-slate-50'
+            }`}>
+              <div className="flex items-center gap-2">
+                <div className={`w-6 h-6 rounded border-2 ${
+                  isDarkMode ? 'bg-green-900/30 border-green-700' : 'bg-green-50 border-green-300'
+                }`}></div>
+                <span className={`text-sm ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>Available</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className={`w-6 h-6 rounded border-2 ${
+                  isDarkMode ? 'bg-red-900/50 border-red-700' : 'bg-red-100 border-red-300'
+                }`}></div>
+                <span className={`text-sm ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>Occupied</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className={`w-6 h-6 rounded border-2 ${
+                  isDarkMode ? 'bg-green-600 border-green-500' : 'bg-green-500 border-green-600'
+                }`}></div>
+                <span className={`text-sm ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>Selected</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className={`w-6 h-6 rounded border-2 opacity-50 ${
+                  isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-100 border-slate-300'
+                }`}></div>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                 <span className={`text-sm ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
                   {isLabClass ? 'Theory Only (NAC/SAC)' : 'Lab Only (LIB)'}
                 </span>
               </div>
+<<<<<<< HEAD
               <div className={`ml-auto text-xs px-2 py-1 rounded ${isLabClass
                   ? isDarkMode ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-100 text-purple-700'
                   : isDarkMode ? 'bg-teal-900/30 text-teal-300' : 'bg-teal-100 text-teal-700'
                 }`}>
+=======
+              <div className={`ml-auto text-xs px-2 py-1 rounded ${
+                isLabClass 
+                  ? isDarkMode ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-100 text-purple-700'
+                  : isDarkMode ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-100 text-blue-700'
+              }`}>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                 {isLabClass ? 'Lab Class - LIB rooms only' : 'Theory Class - NAC/SAC rooms only'}
               </div>
             </div>
@@ -236,6 +353,7 @@ const RoomSelector = ({
             <div className="p-6 space-y-8">
               {Object.entries(buildings).map(([buildingCode, building]) => (
                 <div key={buildingCode}>
+<<<<<<< HEAD
                   <h4 className={`text-md font-semibold mb-4 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-slate-800'
                     }`}>
                     <Building2 className="w-5 h-5" />
@@ -259,6 +377,35 @@ const RoomSelector = ({
                           className={`p-2 gap-1 ${isDarkMode ? 'bg-slate-800' : 'bg-white'}`}
                           style={{
                             display: 'grid',
+=======
+                  <h4 className={`text-md font-semibold mb-4 flex items-center gap-2 ${
+                    isDarkMode ? 'text-white' : 'text-slate-800'
+                  }`}>
+                    <Building2 className="w-5 h-5" />
+                    {building.name} ({buildingCode})
+                  </h4>
+                  
+                  <div className={`rounded-lg border overflow-hidden ${
+                    isDarkMode ? 'border-slate-700' : 'border-slate-200'
+                  }`}>
+                    {/* Floor Rows */}
+                    {Object.entries(building.floors).sort((a, b) => Number(b[0]) - Number(a[0])).map(([floor, rooms]) => (
+                      <div key={floor} className={`border-b last:border-b-0 ${
+                        isDarkMode ? 'border-slate-700' : 'border-slate-200'
+                      }`}>
+                        {/* Floor Label */}
+                        <div className={`px-3 py-2 font-semibold text-sm ${
+                          isDarkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-700'
+                        }`}>
+                          Floor {floor}
+                        </div>
+                        
+                        {/* Room Grid - 15 rooms in a responsive grid */}
+                        <div 
+                          className={`p-2 gap-1 ${isDarkMode ? 'bg-slate-800' : 'bg-white'}`}
+                          style={{ 
+                            display: 'grid', 
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                             gridTemplateColumns: 'repeat(15, minmax(0, 1fr))'
                           }}
                         >
@@ -269,8 +416,14 @@ const RoomSelector = ({
                               onClick={() => handleRoomClick(room)}
                               disabled={isRoomOccupied(room)}
                               title={room}
+<<<<<<< HEAD
                               className={`p-2 text-center text-xs font-medium rounded border transition-all ${getRoomStyle(room)
                                 }`}
+=======
+                              className={`p-2 text-center text-xs font-medium rounded border transition-all ${
+                                getRoomStyle(room)
+                              }`}
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                             >
                               <div className="flex flex-col items-center">
                                 <span>{room.slice(-2)}</span>
@@ -289,8 +442,14 @@ const RoomSelector = ({
             </div>
 
             {/* Footer */}
+<<<<<<< HEAD
             <div className={`sticky bottom-0 px-6 py-4 border-t flex justify-between items-center ${isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'
               }`}>
+=======
+            <div className={`sticky bottom-0 px-6 py-4 border-t flex justify-between items-center ${
+              isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'
+            }`}>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
               <div className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
                 {selectedRoom ? (
                   <span>Selected: <strong className={isDarkMode ? 'text-white' : 'text-slate-900'}>{selectedRoom}</strong></span>
@@ -302,10 +461,18 @@ const RoomSelector = ({
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
+<<<<<<< HEAD
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${isDarkMode
                       ? 'bg-slate-700 hover:bg-slate-600 text-white'
                       : 'bg-slate-200 hover:bg-slate-300 text-slate-800'
                     }`}
+=======
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    isDarkMode
+                      ? 'bg-slate-700 hover:bg-slate-600 text-white'
+                      : 'bg-slate-200 hover:bg-slate-300 text-slate-800'
+                  }`}
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                 >
                   Cancel
                 </button>
@@ -313,12 +480,21 @@ const RoomSelector = ({
                   type="button"
                   onClick={() => setIsOpen(false)}
                   disabled={!selectedRoom}
+<<<<<<< HEAD
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${selectedRoom
+=======
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    selectedRoom
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                       ? isDarkMode
                         ? 'bg-green-600 hover:bg-green-500 text-white'
                         : 'bg-green-500 hover:bg-green-600 text-white'
                       : 'bg-slate-400 cursor-not-allowed text-slate-200'
+<<<<<<< HEAD
                     }`}
+=======
+                  }`}
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                 >
                   Confirm Selection
                 </button>
@@ -331,6 +507,7 @@ const RoomSelector = ({
       {/* Warning Popup Modal */}
       {showWarning && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center">
+<<<<<<< HEAD
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setShowWarning(false)}
@@ -350,6 +527,32 @@ const RoomSelector = ({
                 </h4>
                 <p className={`text-sm ${isDarkMode ? 'text-slate-300' : 'text-slate-600'
                   }`}>
+=======
+          <div 
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowWarning(false)}
+          />
+          <div className={`relative w-full max-w-md p-6 rounded-2xl shadow-2xl ${
+            isDarkMode ? 'bg-slate-800' : 'bg-white'
+          }`}>
+            <div className="flex items-start gap-4">
+              <div className={`p-3 rounded-full ${
+                isDarkMode ? 'bg-amber-900/30' : 'bg-amber-100'
+              }`}>
+                <AlertTriangle className={`w-6 h-6 ${
+                  isDarkMode ? 'text-amber-400' : 'text-amber-600'
+                }`} />
+              </div>
+              <div className="flex-1">
+                <h4 className={`text-lg font-bold mb-2 ${
+                  isDarkMode ? 'text-white' : 'text-slate-900'
+                }`}>
+                  Room Restriction
+                </h4>
+                <p className={`text-sm ${
+                  isDarkMode ? 'text-slate-300' : 'text-slate-600'
+                }`}>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                   {warningMessage}
                 </p>
               </div>
@@ -358,10 +561,18 @@ const RoomSelector = ({
               <button
                 type="button"
                 onClick={() => setShowWarning(false)}
+<<<<<<< HEAD
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${isDarkMode
                     ? 'bg-slate-700 hover:bg-slate-600 text-white'
                     : 'bg-slate-200 hover:bg-slate-300 text-slate-800'
                   }`}
+=======
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  isDarkMode
+                    ? 'bg-slate-700 hover:bg-slate-600 text-white'
+                    : 'bg-slate-200 hover:bg-slate-300 text-slate-800'
+                }`}
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
               >
                 Got it
               </button>

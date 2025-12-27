@@ -73,6 +73,7 @@ const CalendarView = ({ classes, enrolledClasses, isDarkMode, academicEvents = [
 
   // Event type colors with dark mode support - WCAG AA compliant contrast
   const eventColors = {
+<<<<<<< HEAD
     'holiday': {
       bg: isDarkMode ? 'bg-red-500/20' : 'bg-red-50',
       text: isDarkMode ? 'text-red-300' : 'text-red-800',
@@ -114,6 +115,49 @@ const CalendarView = ({ classes, enrolledClasses, isDarkMode, academicEvents = [
       text: isDarkMode ? 'text-slate-300' : 'text-slate-800',
       border: isDarkMode ? 'border-slate-500/30' : 'border-slate-200',
       dot: 'bg-slate-500'
+=======
+    'holiday': { 
+      bg: isDarkMode ? 'bg-red-500/20' : 'bg-red-50', 
+      text: isDarkMode ? 'text-red-300' : 'text-red-800', 
+      border: isDarkMode ? 'border-red-500/30' : 'border-red-200', 
+      dot: 'bg-red-500' 
+    },
+    'exam': { 
+      bg: isDarkMode ? 'bg-purple-500/20' : 'bg-purple-50', 
+      text: isDarkMode ? 'text-purple-300' : 'text-purple-800', 
+      border: isDarkMode ? 'border-purple-500/30' : 'border-purple-200', 
+      dot: 'bg-purple-500' 
+    },
+    'advising': { 
+      bg: isDarkMode ? 'bg-blue-500/20' : 'bg-blue-50', 
+      text: isDarkMode ? 'text-blue-300' : 'text-blue-800', 
+      border: isDarkMode ? 'border-blue-500/30' : 'border-blue-200', 
+      dot: 'bg-blue-500' 
+    },
+    'evaluation': { 
+      bg: isDarkMode ? 'bg-orange-500/20' : 'bg-orange-50', 
+      text: isDarkMode ? 'text-orange-300' : 'text-orange-800', 
+      border: isDarkMode ? 'border-orange-500/30' : 'border-orange-200', 
+      dot: 'bg-orange-500' 
+    },
+    'registration': { 
+      bg: isDarkMode ? 'bg-emerald-500/20' : 'bg-emerald-50', 
+      text: isDarkMode ? 'text-emerald-300' : 'text-emerald-800', 
+      border: isDarkMode ? 'border-emerald-500/30' : 'border-emerald-200', 
+      dot: 'bg-emerald-500' 
+    },
+    'break': { 
+      bg: isDarkMode ? 'bg-amber-500/20' : 'bg-amber-50', 
+      text: isDarkMode ? 'text-amber-300' : 'text-amber-800', 
+      border: isDarkMode ? 'border-amber-500/30' : 'border-amber-200', 
+      dot: 'bg-amber-500' 
+    },
+    'other': { 
+      bg: isDarkMode ? 'bg-slate-500/20' : 'bg-slate-100', 
+      text: isDarkMode ? 'text-slate-300' : 'text-slate-800', 
+      border: isDarkMode ? 'border-slate-500/30' : 'border-slate-200', 
+      dot: 'bg-slate-500' 
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
     }
   };
 
@@ -159,8 +203,13 @@ const CalendarView = ({ classes, enrolledClasses, isDarkMode, academicEvents = [
       <div className={`px-6 py-5 border-b ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}`}>
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
+<<<<<<< HEAD
             <div className={`p-2.5 rounded-xl ${isDarkMode ? 'bg-teal-500/10' : 'bg-teal-50'}`}>
               <CalendarIcon className={`w-5 h-5 ${isDarkMode ? 'text-teal-400' : 'text-teal-600'}`} strokeWidth={1.75} />
+=======
+            <div className={`p-2.5 rounded-xl ${isDarkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
+              <CalendarIcon className={`w-5 h-5 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`} strokeWidth={1.75} />
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
             </div>
             <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
               Academic Calendar
@@ -172,8 +221,13 @@ const CalendarView = ({ classes, enrolledClasses, isDarkMode, academicEvents = [
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
               focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
               ${isDarkMode
+<<<<<<< HEAD
                 ? 'bg-[#124d54] text-white hover:bg-[#094044] focus-visible:ring-teal-500 focus-visible:ring-offset-slate-800 shadow-md shadow-teal-900/20'
                 : 'bg-teal-50 text-teal-700 hover:bg-teal-100 focus-visible:ring-teal-500 focus-visible:ring-offset-white border border-teal-100'
+=======
+                ? 'bg-slate-700 text-slate-200 hover:bg-slate-600 focus-visible:ring-slate-400 focus-visible:ring-offset-slate-800'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200 focus-visible:ring-slate-500 focus-visible:ring-offset-white'
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
               }`}
             aria-label="Go to today"
           >
@@ -187,9 +241,15 @@ const CalendarView = ({ classes, enrolledClasses, isDarkMode, academicEvents = [
             onClick={previousMonth}
             className={`p-2.5 min-h-[44px] min-w-[44px] rounded-lg transition-all duration-200 inline-flex items-center justify-center
               focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+<<<<<<< HEAD
               ${isDarkMode
                 ? 'hover:bg-teal-500/10 text-slate-400 hover:text-teal-400 focus-visible:ring-teal-500 focus-visible:ring-offset-slate-800'
                 : 'hover:bg-teal-50 text-slate-500 hover:text-teal-700 focus-visible:ring-teal-400 focus-visible:ring-offset-white'
+=======
+              ${isDarkMode 
+                ? 'hover:bg-slate-700 text-slate-400 hover:text-slate-200 focus-visible:ring-slate-400 focus-visible:ring-offset-slate-800' 
+                : 'hover:bg-slate-100 text-slate-500 hover:text-slate-700 focus-visible:ring-slate-500 focus-visible:ring-offset-white'
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
               }`}
             aria-label="Previous month"
           >
@@ -204,9 +264,15 @@ const CalendarView = ({ classes, enrolledClasses, isDarkMode, academicEvents = [
             onClick={nextMonth}
             className={`p-2.5 min-h-[44px] min-w-[44px] rounded-lg transition-all duration-200 inline-flex items-center justify-center
               focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+<<<<<<< HEAD
               ${isDarkMode
                 ? 'hover:bg-teal-500/10 text-slate-400 hover:text-teal-400 focus-visible:ring-teal-500 focus-visible:ring-offset-slate-800'
                 : 'hover:bg-teal-50 text-slate-500 hover:text-teal-700 focus-visible:ring-teal-400 focus-visible:ring-offset-white'
+=======
+              ${isDarkMode 
+                ? 'hover:bg-slate-700 text-slate-400 hover:text-slate-200 focus-visible:ring-slate-400 focus-visible:ring-offset-slate-800' 
+                : 'hover:bg-slate-100 text-slate-500 hover:text-slate-700 focus-visible:ring-slate-500 focus-visible:ring-offset-white'
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
               }`}
             aria-label="Next month"
           >
@@ -216,7 +282,11 @@ const CalendarView = ({ classes, enrolledClasses, isDarkMode, academicEvents = [
       </div>
 
       {/* Legend */}
+<<<<<<< HEAD
       <div className={`px-6 py-3 border-b ${isDarkMode ? 'border-teal-500/20 bg-teal-900/10' : 'border-teal-100 bg-teal-50/30'}`}>
+=======
+      <div className={`px-6 py-3 border-b ${isDarkMode ? 'border-slate-700 bg-slate-800/50' : 'border-slate-100 bg-slate-50/50'}`}>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
         <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs">
           <div className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
@@ -227,7 +297,11 @@ const CalendarView = ({ classes, enrolledClasses, isDarkMode, academicEvents = [
             <span className={isDarkMode ? 'text-slate-400' : 'text-slate-600'}>Exams</span>
           </div>
           <div className="flex items-center gap-2">
+<<<<<<< HEAD
             <div className="w-2.5 h-2.5 rounded-full bg-teal-500"></div>
+=======
+            <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
             <span className={isDarkMode ? 'text-slate-400' : 'text-slate-600'}>Advising</span>
           </div>
           <div className="flex items-center gap-2">
@@ -272,19 +346,34 @@ const CalendarView = ({ classes, enrolledClasses, isDarkMode, academicEvents = [
                 className={`aspect-square border rounded-xl p-2 transition-all duration-200 cursor-default
                   ${isTodayDate
                     ? isDarkMode
+<<<<<<< HEAD
                       ? 'bg-teal-500/20 border-teal-500 ring-2 ring-teal-500/50 shadow-lg shadow-teal-500/20'
                       : 'bg-teal-50 border-teal-400 ring-2 ring-teal-400/50 shadow-lg shadow-teal-500/10'
                     : isDarkMode
                       ? 'bg-slate-700/30 border-slate-700/50 hover:border-teal-500/50 hover:bg-teal-900/20'
                       : 'bg-white border-slate-200 hover:border-teal-200 hover:bg-teal-50/50'
+=======
+                      ? 'bg-blue-500/20 border-blue-500 ring-2 ring-blue-500/50 shadow-lg shadow-blue-500/20'
+                      : 'bg-blue-50 border-blue-400 ring-2 ring-blue-400/50 shadow-lg shadow-blue-500/10'
+                    : isDarkMode
+                      ? 'bg-slate-700/50 border-slate-600 hover:border-slate-500 hover:bg-slate-700'
+                      : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                   }`}
               >
                 {/* Date number */}
                 <div className={`text-sm font-semibold mb-1 ${isTodayDate
+<<<<<<< HEAD
                   ? isDarkMode ? 'text-teal-400' : 'text-teal-600'
                   : isDarkMode
                     ? 'text-slate-200'
                     : 'text-slate-700'
+=======
+                    ? isDarkMode ? 'text-blue-400' : 'text-blue-600'
+                    : isDarkMode
+                      ? 'text-slate-200'
+                      : 'text-slate-700'
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                   }`}>
                   {date.getDate()}
                 </div>
@@ -337,9 +426,15 @@ const CalendarView = ({ classes, enrolledClasses, isDarkMode, academicEvents = [
                   <div
                     key={idx}
                     className={`p-4 rounded-xl border transition-all duration-200 hover:shadow-sm
+<<<<<<< HEAD
                       ${isDarkMode
                         ? 'bg-teal-900/10 border-teal-500/20 hover:border-teal-500/40 hover:bg-teal-900/20'
                         : 'bg-teal-50/30 border-teal-100 hover:border-teal-200 hover:bg-teal-50'
+=======
+                      ${isDarkMode 
+                        ? 'bg-slate-700/50 border-slate-600 hover:border-slate-500' 
+                        : 'bg-slate-50 border-slate-200 hover:border-slate-300'
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                       }`}
                   >
                     <div className="flex items-start gap-3">
@@ -373,8 +468,13 @@ const CalendarView = ({ classes, enrolledClasses, isDarkMode, academicEvents = [
       {/* No Events Message */}
       {academicEvents.length === 0 && (
         <div className={`px-6 py-12 border-t text-center ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+<<<<<<< HEAD
           <div className={`inline-flex p-4 rounded-2xl mb-4 ${isDarkMode ? 'bg-teal-500/10' : 'bg-teal-50'}`}>
             <CalendarIcon className={`w-10 h-10 ${isDarkMode ? 'text-teal-500/40' : 'text-teal-400'}`} strokeWidth={1.5} />
+=======
+          <div className={`inline-flex p-4 rounded-2xl mb-4 ${isDarkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
+            <CalendarIcon className={`w-10 h-10 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`} strokeWidth={1.5} />
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
           </div>
           <p className={`text-sm font-medium ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
             No academic calendar uploaded yet
@@ -388,4 +488,8 @@ const CalendarView = ({ classes, enrolledClasses, isDarkMode, academicEvents = [
   );
 };
 
+<<<<<<< HEAD
 export default React.memo(CalendarView);
+=======
+export default CalendarView;
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe

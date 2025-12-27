@@ -46,7 +46,11 @@ const Header = ({
     }`;
 
   return (
+<<<<<<< HEAD
     <header className={`page-header min-h-[5rem] border-b px-4 md:px-8 py-4 flex flex-wrap items-center justify-between gap-4 transition-colors duration-300 sticky top-0 z-30 ${isDarkMode ? 'bg-slate-800/90 backdrop-blur-sm border-slate-700' : 'bg-white/90 backdrop-blur-sm border-slate-200'
+=======
+    <header className={`page-header min-h-[5rem] border-b px-4 md:px-8 py-4 flex flex-wrap items-center justify-between gap-4 transition-colors duration-300 relative z-10 ${isDarkMode ? 'bg-slate-800/90 backdrop-blur-sm border-slate-700' : 'bg-white/90 backdrop-blur-sm border-slate-200'
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
       }`}>
       {/* Title Section */}
       <div className="min-w-0 flex-shrink-0">
@@ -173,7 +177,11 @@ const Header = ({
                             ? 'bg-emerald-500 ring-emerald-500/30'
                             : notif.type === 'error'
                               ? 'bg-red-500 ring-red-500/30'
+<<<<<<< HEAD
                               : 'bg-teal-500 ring-teal-500/30'
+=======
+                              : 'bg-blue-500 ring-blue-500/30'
+>>>>>>> 9e987d0bc2b5e1ee9fd668c7dba32ea25ee440fe
                           }`}></div>
                         <div className="flex-1 min-w-0">
                           <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-slate-200' : 'text-slate-700'
