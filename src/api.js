@@ -210,3 +210,19 @@ export async function getRoomAvailability(days, time) {
 
   return res.json();
 }
+
+// Bulk class creation API
+export async function addClassesBulk(classes) {
+  const res = await fetch(`${BASE}/api/classes/bulk`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(classes),
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ error: "Failed to save classes" }));
+    throw new Error(error.error || "Failed to save classes to database");
+  }
+
+  return res.json();
+}

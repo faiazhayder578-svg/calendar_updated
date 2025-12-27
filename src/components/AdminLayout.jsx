@@ -270,23 +270,29 @@ const AdminLayout = () => {
   const openAIModal = () => setIsAIModalOpen(true);
   const closeAIModal = () => setIsAIModalOpen(false);
 
-  const applyGeneratedSchedule = async (generatedClasses) => {
-    for (const cls of generatedClasses) {
-      try {
-        const response = await fetch('http://localhost:5000/api/classes', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...cls, enrolled: 0, maxCapacity: 40 })
-        });
-        if (response.ok) {
-          const added = await response.json();
-          setClasses(prev => [...prev, added]);
-        }
-      } catch (error) {
-        console.error('Failed to add generated class:', error);
+  // Function to fetch classes from the database
+  const fetchClasses = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/classes');
+      if (response.ok) {
+        const data = await response.json();
+        setClasses(data);
       }
+    } catch (error) {
+      console.error('Failed to fetch classes:', error);
     }
-    addNotification(`Applied ${generatedClasses.length} classes from Auto schedule!`, 'success');
+  };
+
+  // Called by AIScheduleModal after successful bulk save - updates local state with saved classes
+  const applyGeneratedSchedule = (savedClasses) => {
+    // savedClasses already have IDs from the database, just add them to local state
+    setClasses(prev => [...prev, ...savedClasses]);
+  };
+
+  // Callback to refresh class list after schedule is saved
+  const handleScheduleSaved = () => {
+    // Refresh classes from database to ensure we have the latest data
+    fetchClasses();
   };
 
   const handleAddClass = (newClass) => {
@@ -574,6 +580,7 @@ const AdminLayout = () => {
         isDarkMode={isDarkMode}
         addNotification={addNotification}
         applyGeneratedSchedule={applyGeneratedSchedule}
+        onScheduleSaved={handleScheduleSaved}
       />
     </div>
   );

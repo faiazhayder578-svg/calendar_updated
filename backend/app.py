@@ -326,29 +326,25 @@ def generate_schedule():
     
     try:
         data = request.json
-        # No API key needed anymore
-        # data format: { "instructors": [...] }
-        # If frontend sends prompt/apiKey, we ignore them and look for raw instructor data 
-        # But wait, the frontend currently sends a text prompt. We should update frontend to send structured data.
-        # OR we can parse the structured data if we update the frontend first. 
-        # Let's assume we will update the frontend to send strict JSON of instructors.
-        
         instructors = data.get('instructors', [])
-        
-        # If we are transitioning, we might receive the old payload. 
-        # Let's support the new payload structure: { instructors: [...] }
-        
         total_sections = data.get('totalSections', 1)
         
         if not instructors:
             return jsonify({"error": "No instructor data provided"}), 400
 
-        # Resources
-        rooms = [
+        # Regular classroom resources (non-lab rooms)
+        theory_rooms = [
             'NAC210', 'NAC302', 'NAC411', 'NAC510', 'NAC612',
-            'SAC201', 'SAC304', 'SAC402', 'SAC505',
-            'LIB608'
+            'SAC201', 'SAC304', 'SAC402', 'SAC505'
         ]
+        
+        # Lab rooms (LIB prefix) - only for lab classes
+        lab_rooms = [
+            'LIB601', 'LIB602', 'LIB603', 'LIB604', 'LIB605',
+            'LIB606', 'LIB607', 'LIB608'
+        ]
+        
+        # Theory class time slots (1.5 hour slots)
         time_slots = [
             '08:00 AM - 09:30 AM',
             '09:40 AM - 11:10 AM',
@@ -357,6 +353,20 @@ def generate_schedule():
             '02:40 PM - 04:10 PM',
             '04:20 PM - 05:50 PM'
         ]
+        
+        # Lab time slots (3-hour slots)
+        lab_time_slots = [
+            '08:00 AM - 11:10 AM',
+            '09:40 AM - 12:50 PM',
+            '11:20 AM - 02:30 PM',
+            '12:50 PM - 04:10 PM',
+            '02:40 PM - 05:50 PM'
+        ]
+        
+        # Single days for labs
+        single_days = ['S', 'M', 'T', 'W', 'R', 'A']
+        
+        # Theory day patterns
         days = ['ST', 'MW', 'RA']
         
         generated_schedules = []
@@ -364,24 +374,21 @@ def generate_schedule():
         # Generate 3 different options
         for option_num in range(1, 4):
             schedule_classes = []
-            used_slots = set() # (day, time, room)
+            used_theory_slots = set()  # (day, time, room) for theory classes
+            used_lab_slots = set()     # (day, time, room) for lab classes
             
             # Shuffle instructors to get different results each time
             current_instructors = instructors.copy()
             random.shuffle(current_instructors)
             
-            success = True
-            
             # Use sequential section numbers
             section_counter = 1
             
-            # Helper to check if instructor is already teaching at this time in this option
-            # structure: {instructor_name: set( (day, time) ) }
+            # Track instructor schedules: {instructor_name: set( (day, time) ) }
             instructor_schedules = {}
             # Track assigned sections count
             instructor_workload = {}
-            
-            # Track primary assigned day pattern per instructor to consolidate sections
+            # Track primary assigned day pattern per instructor
             instructor_primary_day = {}
             
             for inst in instructors:
@@ -393,33 +400,31 @@ def generate_schedule():
             # Queue for Round Robin distribution
             instructor_queue = current_instructors.copy()
             
-            # Limit iterations to prevent infinite loops if impossible to schedule
+            # Limit iterations to prevent infinite loops
             max_attempts = total_sections * 10 
             attempts = 0
+            
+            # Track lab conflicts
+            lab_conflict_count = 0
+            lab_conflict_messages = []
             
             while section_counter <= total_sections and attempts < max_attempts:
                 attempts += 1
                 
                 if not instructor_queue:
-                    # All instructors might be full or filtered out
                     break
                 
-                inst = instructor_queue.pop(0) # Get next instructor
+                inst = instructor_queue.pop(0)
                 
                 max_sections = int(inst.get('maxSections', 3))
                 current_load = instructor_workload.get(inst.get('name'), 0)
                 
                 if current_load >= max_sections:
-                    # Skip this instructor, they are full. Do not re-add to queue.
                     continue
 
-                # Put back at end for Round Robin (tentatively, unless we fail hard)
                 instructor_queue.append(inst)
                 
-                # Assign sequential section
                 section_num = section_counter
-                
-                # Format section as 01, 02, etc.
                 section_str = f"{section_num:02d}"
                 
                 assigned = False
@@ -427,30 +432,21 @@ def generate_schedule():
                 course = inst.get('courseCode', 'Unknown')
                 pref_days = inst.get('preferredDays', [])
                 pref_times = inst.get('availableTimes', [])
-                pref_room = inst.get('roomPreference', '')
+                
+                # Lab configuration
+                has_lab = inst.get('hasLab', False)
+                lab_days_pref = inst.get('labDays', [])
+                lab_times_pref = inst.get('labTimes', [])
                 
                 inst_schedule = instructor_schedules.get(name, set())
-                
-                # Try preferred slots first
-                possible_slots = []
-                
-                # 1. Preferred Day + Preferred Time
-                for d in (pref_days if pref_days else days):
-                    for t in (pref_times if pref_times else time_slots):
-                        possible_slots.append((d, t, 10)) # Priority 10 (High)
-                
-                # Strict Availability Logic
-                # If preferences are provided, ONLY usage those.
-                # If NO preferences, use ALL slots.
                 
                 target_days = pref_days if pref_days else days
                 target_times = pref_times if pref_times else time_slots
                 
-                # Prioritize primary day if already assigned
                 primary_day = instructor_primary_day.get(name)
                 
-                tier1_slots = [] # Primary day slots
-                tier2_slots = [] # Other day slots
+                tier1_slots = []
+                tier2_slots = []
                 
                 for d in target_days:
                     for t in target_times:
@@ -459,16 +455,11 @@ def generate_schedule():
                         else:
                             tier2_slots.append((d, t))
                 
-                # Final order: Tier 1 then Tier 2
-                # Within Tier 1, sort by proximity to existing assigned times to minimize idle gaps
                 existing_times = [t for d, t in inst_schedule if d == primary_day]
                 if existing_times and tier1_slots:
-                    # Helper to get the index of time slots
                     time_map = {t: i for i, t in enumerate(time_slots)}
-                    existing_indices = [time_map[t] for t in existing_times]
-                    
-                    # Sort tier1 slots by minimum distance to any existing index
-                    tier1_slots.sort(key=lambda slot: min(abs(time_map[slot[1]] - idx) for idx in existing_indices))
+                    existing_indices = [time_map.get(t, 0) for t in existing_times]
+                    tier1_slots.sort(key=lambda slot: min(abs(time_map.get(slot[1], 0) - idx) for idx in existing_indices) if existing_indices else 0)
                 else:
                     random.shuffle(tier1_slots)
                 
@@ -476,31 +467,23 @@ def generate_schedule():
                 
                 possible_slots = tier1_slots + tier2_slots
                 
-                # Try to find a room & time
+                # Try to find a room & time for theory class
                 for day_val, time_val in possible_slots:
                     if assigned: break
                     
-                    # Check INSTRUCTOR conflict first
                     if (day_val, time_val) in inst_schedule:
-                        continue # Instructor busy at this time
+                        continue
                     
-                    # Determine room list order (pref first, then random)
-                    current_rooms = rooms.copy()
-                    if pref_room and pref_room in rooms:
-                        current_rooms.remove(pref_room)
-                        current_rooms.insert(0, pref_room)
-                    else:
-                        random.shuffle(current_rooms)
+                    current_rooms = theory_rooms.copy()
+                    random.shuffle(current_rooms)
                         
                     for r in current_rooms:
-                        # Check ROOM conflict
-                        if (day_val, time_val, r) not in used_slots:
-                            # Assign!
-                            used_slots.add((day_val, time_val, r))
-                            inst_schedule.add((day_val, time_val)) # Mark instructor busy
-                            instructor_workload[name] = instructor_workload.get(name, 0) + 1 # Increment workload
+                        if (day_val, time_val, r) not in used_theory_slots:
+                            # Assign theory class
+                            used_theory_slots.add((day_val, time_val, r))
+                            inst_schedule.add((day_val, time_val))
+                            instructor_workload[name] = instructor_workload.get(name, 0) + 1
                             
-                            # Record primary day if not set
                             if not instructor_primary_day[name]:
                                 instructor_primary_day[name] = day_val
                                 
@@ -511,24 +494,94 @@ def generate_schedule():
                                 "days": day_val,
                                 "time": time_val,
                                 "room": r,
+                                "type": "theory",
                                 "rationale": f"Matched {day_val} {time_val}"
                             })
                             assigned = True
+                            
+                            # If instructor has lab enabled, schedule lab class with same section
+                            if has_lab:
+                                lab_assigned = False
+                                lab_target_days = lab_days_pref if lab_days_pref else single_days
+                                lab_target_times = lab_times_pref if lab_times_pref else lab_time_slots
+                                
+                                # Shuffle for variety
+                                lab_day_list = list(lab_target_days)
+                                lab_time_list = list(lab_target_times)
+                                random.shuffle(lab_day_list)
+                                random.shuffle(lab_time_list)
+                                
+                                lab_conflict_reason = None
+                                
+                                for lab_day in lab_day_list:
+                                    if lab_assigned: break
+                                    for lab_time in lab_time_list:
+                                        if lab_assigned: break
+                                        
+                                        # Use comprehensive validation for instructor availability
+                                        # This checks:
+                                        # 1. Instructor doesn't have theory class during lab time
+                                        # 2. Instructor doesn't have another lab at same time
+                                        # 3. Handles overlapping time slots (3-hour labs vs 1.5-hour theory)
+                                        is_available, conflict_msg = validate_instructor_availability_for_lab(
+                                            name, 
+                                            inst_schedule, 
+                                            lab_day, 
+                                            lab_time, 
+                                            schedule_classes
+                                        )
+                                        
+                                        if not is_available:
+                                            lab_conflict_reason = conflict_msg
+                                            continue
+                                        
+                                        # Try to find available lab room
+                                        available_lab_rooms = lab_rooms.copy()
+                                        random.shuffle(available_lab_rooms)
+                                        
+                                        for lab_room in available_lab_rooms:
+                                            if (lab_day, lab_time, lab_room) not in used_lab_slots:
+                                                # Assign lab class
+                                                used_lab_slots.add((lab_day, lab_time, lab_room))
+                                                inst_schedule.add((lab_day, lab_time))
+                                                
+                                                schedule_classes.append({
+                                                    "courseCode": f"{course}L",  # Add "L" suffix for lab
+                                                    "section": section_str,      # Same section as theory
+                                                    "faculty": name,             # Same faculty
+                                                    "days": lab_day,
+                                                    "time": lab_time,
+                                                    "room": lab_room,
+                                                    "type": "lab",
+                                                    "rationale": f"Lab for {course} section {section_str}"
+                                                })
+                                                lab_assigned = True
+                                                break
+                                
+                                # If lab couldn't be assigned, add conflict entry with detailed reason
+                                if not lab_assigned:
+                                    lab_conflict_count += 1
+                                    conflict_detail = lab_conflict_reason or "No available lab room/time slot"
+                                    lab_conflict_messages.append(f"Could not schedule lab for {course} section {section_str}: {conflict_detail}")
+                                    schedule_classes.append({
+                                        "courseCode": f"{course}L",
+                                        "section": section_str,
+                                        "faculty": name,
+                                        "days": "TBD",
+                                        "time": "TBD",
+                                        "room": "TBD",
+                                        "type": "lab",
+                                        "conflict": True,
+                                        "rationale": conflict_detail
+                                    })
+                            
                             break
                             
                 if assigned:
                     section_counter += 1
                 else:
-                    # Instructor is full or blocked for all their available slots.
-                    # Remove from queue for this option so we don't waste cycles
                     if inst in instructor_queue:
-                         # Note: inst is a dict, simple removal matches by reference/value. 
-                         # But wait, we pop(0) and append(). 
-                         # If we are here, 'inst' is currently at the END of the list (due to append)
-                         # So we should remove the last element? Or value removal?
-                         # instructor_queue.remove(inst) might remove a duplicate if present (unlikely with deep copy shuffle? actually objects are same dicts)
-                         # Safer to just pop it from end if we JUST appended it.
-                         instructor_queue.pop() # Remove the one we just added back
+                         instructor_queue.pop()
                     pass
             
             # Post-check: If we couldn't fill all sections
@@ -541,29 +594,151 @@ def generate_schedule():
                         "days": "TBD",
                         "time": "TBD",
                         "room": "TBD",
+                        "type": "theory",
                         "rationale": "Could not find valid slot for any instructor"
                  })
                  section_counter += 1
                  conflict_count += 1
             
             # Prepare Workload Summary
-            # Format: [{"name": "Dr. Smith", "count": 2}, ...]
             workload_summary = [{"name": k, "count": v} for k, v in instructor_workload.items()]
+            
+            # Combine conflict messages
+            total_conflicts = conflict_count + lab_conflict_count
+            conflict_message = None
+            if total_conflicts > 0:
+                messages = []
+                if conflict_count > 0:
+                    messages.append(f"Could not schedule {conflict_count} section(s)")
+                if lab_conflict_count > 0:
+                    messages.append(f"Could not schedule {lab_conflict_count} lab(s)")
+                conflict_message = " and ".join(messages) + " due to availability conflicts."
 
             generated_schedules.append({
                 "option": option_num,
                 "classes": schedule_classes,
-                "conflict": conflict_count > 0,
-                "conflictCount": conflict_count,
-                 "conflictMessage": f"Could not schedule {conflict_count} section(s) due to availability conflicts." if conflict_count > 0 else None,
-                 "workload": workload_summary
+                "conflict": total_conflicts > 0,
+                "conflictCount": total_conflicts,
+                "conflictMessage": conflict_message,
+                "workload": workload_summary
             })
             
         return jsonify({"schedules": generated_schedules}), 200
         
     except Exception as e:
         print(f"Algorithm Error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
+
+def parse_time_to_minutes(time_str):
+    """Parse time string like '08:00 AM' to minutes from midnight"""
+    parts = time_str.strip().split()
+    time_part = parts[0]
+    period = parts[1] if len(parts) > 1 else 'AM'
+    
+    hours, minutes = map(int, time_part.split(':'))
+    if period == 'PM' and hours != 12:
+        hours += 12
+    elif period == 'AM' and hours == 12:
+        hours = 0
+    
+    return hours * 60 + minutes
+
+def get_time_range(slot):
+    """Get start and end times from a slot like '08:00 AM - 09:30 AM'"""
+    parts = slot.split(' - ')
+    start = parse_time_to_minutes(parts[0])
+    end = parse_time_to_minutes(parts[1])
+    return start, end
+
+def check_time_overlap(time1, time2):
+    """Check if two time slots overlap"""
+    try:
+        start1, end1 = get_time_range(time1)
+        start2, end2 = get_time_range(time2)
+        
+        # Check for overlap
+        return start1 < end2 and start2 < end1
+    except:
+        return False
+
+def check_day_overlap(day1, day2):
+    """
+    Check if two day patterns overlap.
+    Handles both single days (S, M, T, W, R, A) and double day patterns (ST, MW, RA).
+    Returns True if any day in day1 overlaps with any day in day2.
+    """
+    # Expand double day patterns to individual days
+    def expand_days(day_pattern):
+        if len(day_pattern) == 2:
+            return set(day_pattern)  # 'ST' -> {'S', 'T'}
+        return {day_pattern}  # 'S' -> {'S'}
+    
+    days1 = expand_days(day1)
+    days2 = expand_days(day2)
+    
+    # Check if there's any intersection
+    return bool(days1 & days2)
+
+def check_instructor_lab_conflict(instructor_schedule, lab_day, lab_time):
+    """
+    Check if an instructor has a conflict with a proposed lab slot.
+    
+    Args:
+        instructor_schedule: set of (day, time) tuples representing instructor's current schedule
+        lab_day: the proposed lab day (single day like 'S' or double day like 'ST')
+        lab_time: the proposed lab time slot (e.g., '08:00 AM - 11:10 AM')
+    
+    Returns:
+        tuple: (has_conflict: bool, conflict_details: str or None)
+    """
+    for existing_day, existing_time in instructor_schedule:
+        # Check if days overlap
+        if check_day_overlap(lab_day, existing_day):
+            # Check if times overlap
+            if check_time_overlap(lab_time, existing_time):
+                return True, f"Conflict with existing class on {existing_day} at {existing_time}"
+    
+    return False, None
+
+def validate_instructor_availability_for_lab(instructor_name, instructor_schedule, lab_day, lab_time, all_scheduled_classes):
+    """
+    Comprehensive validation of instructor availability for a lab slot.
+    
+    Checks:
+    1. Instructor doesn't have a theory class during the lab time
+    2. Instructor doesn't have another lab at the same time
+    3. Handles overlapping time slots (3-hour labs vs 1.5-hour theory)
+    
+    Args:
+        instructor_name: Name of the instructor
+        instructor_schedule: set of (day, time) tuples for this instructor
+        lab_day: Proposed lab day
+        lab_time: Proposed lab time slot
+        all_scheduled_classes: List of all classes scheduled so far in this option
+    
+    Returns:
+        tuple: (is_available: bool, conflict_message: str or None)
+    """
+    # Check 1 & 2: Check against instructor's current schedule (includes both theory and lab)
+    has_conflict, conflict_details = check_instructor_lab_conflict(instructor_schedule, lab_day, lab_time)
+    if has_conflict:
+        return False, f"Instructor {instructor_name} has a conflict: {conflict_details}"
+    
+    # Check 3: Additional check against all scheduled classes for this instructor
+    # This catches any edge cases where the schedule set might not be fully updated
+    for cls in all_scheduled_classes:
+        if cls.get('faculty') == instructor_name:
+            cls_day = cls.get('days', '')
+            cls_time = cls.get('time', '')
+            
+            if check_day_overlap(lab_day, cls_day) and check_time_overlap(lab_time, cls_time):
+                cls_type = cls.get('type', 'theory')
+                return False, f"Instructor {instructor_name} already has a {cls_type} class on {cls_day} at {cls_time}"
+    
+    return True, None
 
 def seed_admin_users():
     """Seed default admin accounts if they don't exist"""

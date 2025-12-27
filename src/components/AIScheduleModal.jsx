@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
-import { X, Sparkles, Plus, XCircle, Loader, CheckCircle, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
+import { X, Sparkles, Plus, XCircle, Loader, CheckCircle, FlaskConical, ChevronDown, ChevronUp, Lightbulb, AlertTriangle, Check } from 'lucide-react';
+import { addClassesBulk } from '../api';
 
-const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, applyGeneratedSchedule }) => {
+const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, applyGeneratedSchedule, onScheduleSaved }) => {
   const [instructorAvailability, setInstructorAvailability] = useState([
-    { id: 1, name: '', courseCode: '', preferredDays: [], availableTimes: [], roomPreference: '', maxSections: 3 }
+    { id: 1, name: '', courseCode: '', preferredDays: [], availableTimes: [], maxSections: 3, hasLab: false, labDays: [], labTimes: [] }
   ]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedSchedules, setGeneratedSchedules] = useState([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
 
   const availableDays = ['ST', 'MW', 'RA'];
   const availableTimes = [
@@ -17,6 +20,192 @@ const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, appl
     '02:40 PM - 04:10 PM',
     '04:20 PM - 05:50 PM'
   ];
+
+  // Lab configuration options - Single days
+  const labSingleDays = [
+    { value: 'S', label: 'Sunday' },
+    { value: 'M', label: 'Monday' },
+    { value: 'T', label: 'Tuesday' },
+    { value: 'W', label: 'Wednesday' },
+    { value: 'R', label: 'Thursday' },
+    { value: 'A', label: 'Saturday' }
+  ];
+
+  // Lab configuration options - Double day patterns (same as theory)
+  const labDoubleDays = [
+    { value: 'ST', label: 'Sun-Tue' },
+    { value: 'MW', label: 'Mon-Wed' },
+    { value: 'RA', label: 'Thu-Sat' }
+  ];
+
+  // Combined lab days for validation
+  const labDays = [...labSingleDays, ...labDoubleDays];
+
+  // Valid day pairs for labs (S-T, M-W, R-A)
+  const validDayPairs = {
+    'S': 'T',
+    'T': 'S',
+    'M': 'W',
+    'W': 'M',
+    'R': 'A',
+    'A': 'R'
+  };
+
+  // Lab time slots - both 3-hour and 1.5-hour options
+  const labTimeSlots = [
+    // 3-hour slots
+    { value: '08:00 AM - 11:10 AM', label: '08:00 AM - 11:10 AM (3 hrs)', duration: '3hr' },
+    { value: '09:40 AM - 12:50 PM', label: '09:40 AM - 12:50 PM (3 hrs)', duration: '3hr' },
+    { value: '11:20 AM - 02:30 PM', label: '11:20 AM - 02:30 PM (3 hrs)', duration: '3hr' },
+    { value: '12:50 PM - 04:10 PM', label: '12:50 PM - 04:10 PM (3 hrs)', duration: '3hr' },
+    { value: '02:40 PM - 05:50 PM', label: '02:40 PM - 05:50 PM (3 hrs)', duration: '3hr' },
+    // 1.5-hour slots (same as theory)
+    { value: '08:00 AM - 09:30 AM', label: '08:00 AM - 09:30 AM', duration: '1.5hr' },
+    { value: '09:40 AM - 11:10 AM', label: '09:40 AM - 11:10 AM', duration: '1.5hr' },
+    { value: '11:20 AM - 12:50 PM', label: '11:20 AM - 12:50 PM', duration: '1.5hr' },
+    { value: '01:00 PM - 02:30 PM', label: '01:00 PM - 02:30 PM', duration: '1.5hr' },
+    { value: '02:40 PM - 04:10 PM', label: '02:40 PM - 04:10 PM', duration: '1.5hr' },
+    { value: '04:20 PM - 05:50 PM', label: '04:20 PM - 05:50 PM', duration: '1.5hr' }
+  ];
+
+  // Check if selected lab days have a valid pairing conflict
+  const getLabDayConflict = (selectedDays) => {
+    if (selectedDays.length < 2) return null;
+    
+    // If a double day pattern is selected, no other days should be selected
+    const hasDoubleDay = selectedDays.some(d => d.length === 2);
+    if (hasDoubleDay && selectedDays.length > 1) {
+      return 'Cannot combine double day patterns (ST, MW, RA) with other days';
+    }
+    
+    // For single days, check all pairs of selected days
+    for (let i = 0; i < selectedDays.length; i++) {
+      for (let j = i + 1; j < selectedDays.length; j++) {
+        const day1 = selectedDays[i];
+        const day2 = selectedDays[j];
+        // Check if they are NOT a valid pair
+        if (validDayPairs[day1] !== day2) {
+          return `Invalid day combination: ${day1} and ${day2}. Valid pairs are: S-T, M-W, R-A`;
+        }
+      }
+    }
+    return null;
+  };
+
+  // Parse time string to minutes from midnight
+  const parseTimeToMinutes = (timeStr) => {
+    const parts = timeStr.trim().split(' ');
+    const timePart = parts[0];
+    const period = parts[1] || 'AM';
+    
+    let [hours, minutes] = timePart.split(':').map(Number);
+    if (period === 'PM' && hours !== 12) {
+      hours += 12;
+    } else if (period === 'AM' && hours === 12) {
+      hours = 0;
+    }
+    
+    return hours * 60 + minutes;
+  };
+
+  // Check if two time slots overlap
+  const checkTimeOverlap = (time1, time2) => {
+    try {
+      const [start1Str, end1Str] = time1.split(' - ');
+      const [start2Str, end2Str] = time2.split(' - ');
+      
+      const start1 = parseTimeToMinutes(start1Str);
+      const end1 = parseTimeToMinutes(end1Str);
+      const start2 = parseTimeToMinutes(start2Str);
+      const end2 = parseTimeToMinutes(end2Str);
+      
+      return start1 < end2 && start2 < end1;
+    } catch {
+      return false;
+    }
+  };
+
+  // Check if two day patterns overlap
+  const checkDayOverlap = (day1, day2) => {
+    const expandDays = (dayPattern) => {
+      if (dayPattern.length === 2) {
+        return new Set(dayPattern.split(''));
+      }
+      return new Set([dayPattern]);
+    };
+    
+    const days1 = expandDays(day1);
+    const days2 = expandDays(day2);
+    
+    for (const d of days1) {
+      if (days2.has(d)) return true;
+    }
+    return false;
+  };
+
+  // Check for potential conflicts between theory and lab times for an instructor
+  const getLabTimeConflict = (slot) => {
+    if (!slot.hasLab || slot.labDays.length === 0 || slot.labTimes.length === 0) {
+      return null;
+    }
+    
+    const encodedLabDays = encodeLabDays(slot.labDays);
+    
+    // Check each combination of theory day/time with lab day/time
+    for (const theoryDay of slot.preferredDays) {
+      for (const theoryTime of slot.availableTimes) {
+        for (const labDay of encodedLabDays) {
+          for (const labTime of slot.labTimes) {
+            // Check if days overlap
+            if (checkDayOverlap(theoryDay, labDay)) {
+              // Check if times overlap
+              if (checkTimeOverlap(theoryTime, labTime)) {
+                return `Potential conflict: Theory (${theoryDay} ${theoryTime}) overlaps with Lab (${labDay} ${labTime}). The scheduler will try to avoid this.`;
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    return null;
+  };
+
+  // Convert selected lab days to encoded format for backend
+  // If S and T are selected separately, encode as "ST"
+  const encodeLabDays = (selectedDays) => {
+    if (selectedDays.length === 0) return [];
+    
+    // If already a double day pattern, return as-is
+    if (selectedDays.some(d => d.length === 2)) {
+      return selectedDays;
+    }
+    
+    // Check if we have a valid pair that should be combined
+    const sortedDays = [...selectedDays].sort();
+    
+    // Check for S-T pair
+    if (sortedDays.includes('S') && sortedDays.includes('T')) {
+      const remaining = sortedDays.filter(d => d !== 'S' && d !== 'T');
+      return ['ST', ...remaining];
+    }
+    // Check for M-W pair
+    if (sortedDays.includes('M') && sortedDays.includes('W')) {
+      const remaining = sortedDays.filter(d => d !== 'M' && d !== 'W');
+      return ['MW', ...remaining];
+    }
+    // Check for R-A pair
+    if (sortedDays.includes('R') && sortedDays.includes('A')) {
+      const remaining = sortedDays.filter(d => d !== 'R' && d !== 'A');
+      return ['RA', ...remaining];
+    }
+    
+    // Return as single days
+    return selectedDays;
+  };
+
+  // Track which instructor slots have expanded lab panels
+  const [expandedLabPanels, setExpandedLabPanels] = useState({});
 
   const [totalSections, setTotalSections] = useState(1);
 
@@ -29,8 +218,10 @@ const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, appl
         courseCode: '',
         preferredDays: [],
         availableTimes: [],
-        roomPreference: '',
-        maxSections: 3
+        maxSections: 3,
+        hasLab: false,
+        labDays: [],
+        labTimes: []
       }
     ]);
   };
@@ -71,6 +262,53 @@ const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, appl
     }));
   };
 
+  const toggleLabPanel = (id) => {
+    setExpandedLabPanels(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
+  const toggleLabEnabled = (id) => {
+    setInstructorAvailability(instructorAvailability.map(slot => {
+      if (slot.id === id) {
+        const newHasLab = !slot.hasLab;
+        return { 
+          ...slot, 
+          hasLab: newHasLab,
+          // Clear lab selections when disabling
+          labDays: newHasLab ? slot.labDays : [],
+          labTimes: newHasLab ? slot.labTimes : []
+        };
+      }
+      return slot;
+    }));
+  };
+
+  const toggleLabDaySelection = (id, day) => {
+    setInstructorAvailability(instructorAvailability.map(slot => {
+      if (slot.id === id) {
+        const days = slot.labDays.includes(day)
+          ? slot.labDays.filter(d => d !== day)
+          : [...slot.labDays, day];
+        return { ...slot, labDays: days };
+      }
+      return slot;
+    }));
+  };
+
+  const toggleLabTimeSelection = (id, time) => {
+    setInstructorAvailability(instructorAvailability.map(slot => {
+      if (slot.id === id) {
+        const times = slot.labTimes.includes(time)
+          ? slot.labTimes.filter(t => t !== time)
+          : [...slot.labTimes, time];
+        return { ...slot, labTimes: times };
+      }
+      return slot;
+    }));
+  };
+
   const generateScheduleWithAI = async () => {
     // Validate input
     const invalidSlots = instructorAvailability.filter(
@@ -82,10 +320,26 @@ const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, appl
       return;
     }
 
+    // Validate lab day pairs
+    const labDayConflicts = instructorAvailability.filter(
+      slot => slot.hasLab && getLabDayConflict(slot.labDays)
+    );
+
+    if (labDayConflicts.length > 0) {
+      addNotification('Please fix lab day conflicts. Valid pairs are: S-T, M-W, R-A', 'error');
+      return;
+    }
+
     setIsGenerating(true);
 
     try {
-      console.log('Sending instructors to backend:', instructorAvailability);
+      // Encode lab days before sending to backend
+      const instructorsWithEncodedLabDays = instructorAvailability.map(inst => ({
+        ...inst,
+        labDays: encodeLabDays(inst.labDays)
+      }));
+      
+      console.log('Sending instructors to backend:', instructorsWithEncodedLabDays);
 
       const response = await fetch("http://localhost:5000/api/generate-schedule", {
         method: "POST",
@@ -93,7 +347,7 @@ const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, appl
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          instructors: instructorAvailability,
+          instructors: instructorsWithEncodedLabDays,
           totalSections: parseInt(totalSections)
         })
       });
@@ -126,16 +380,67 @@ const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, appl
     }
   };
 
-  const handleApplySchedule = (schedule) => {
-    applyGeneratedSchedule(schedule.classes);
-    handleClose();
+  const handleApplySchedule = async (schedule) => {
+    // Filter out conflict/unassigned classes that shouldn't be saved
+    const validClasses = schedule.classes.filter(cls => 
+      cls.courseCode !== 'UNASSIGNED' && 
+      !cls.conflict && 
+      cls.room !== 'TBD'
+    );
+
+    if (validClasses.length === 0) {
+      addNotification('No valid classes to save. Please resolve conflicts first.', 'error');
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveError(null);
+
+    try {
+      // Prepare classes for bulk API - format for database
+      const classesToSave = validClasses.map(cls => ({
+        courseCode: cls.courseCode,
+        section: cls.section,
+        faculty: cls.faculty,
+        room: cls.room,
+        time: cls.time,
+        days: cls.days,
+        maxCapacity: 40,
+        enrolled: 0
+      }));
+
+      // Call bulk API to save all classes at once
+      const savedClasses = await addClassesBulk(classesToSave);
+
+      // Update local state with saved classes (which now have IDs from database)
+      if (applyGeneratedSchedule) {
+        applyGeneratedSchedule(savedClasses);
+      }
+
+      // Trigger refresh of class list in parent component
+      if (onScheduleSaved) {
+        onScheduleSaved();
+      }
+
+      addNotification(`Successfully saved ${savedClasses.length} classes to database!`, 'success');
+      handleClose();
+    } catch (error) {
+      console.error('Failed to save schedule:', error);
+      setSaveError(error.message || 'Failed to save schedule to database');
+      addNotification(`Error: ${error.message || 'Failed to save schedule'}`, 'error');
+      // Keep modal open on failure - don't call handleClose()
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleClose = () => {
     setGeneratedSchedules([]);
     setInstructorAvailability([
-      { id: 1, name: '', courseCode: '', preferredDays: [], availableTimes: [], roomPreference: '', maxSections: 3 }
+      { id: 1, name: '', courseCode: '', preferredDays: [], availableTimes: [], maxSections: 3, hasLab: false, labDays: [], labTimes: [] }
     ]);
+    setExpandedLabPanels({});
+    setSaveError(null);
     closeModal();
   };
 
@@ -183,10 +488,11 @@ const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, appl
               // Input Form
               <div className="space-y-6">
 
-                <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-blue-900/20 border border-blue-800' : 'bg-blue-50 border border-blue-200'
+                <div className={`p-4 rounded-xl flex items-start gap-3 ${isDarkMode ? 'bg-blue-900/30 border border-blue-700' : 'bg-blue-50 border border-blue-200'
                   }`}>
-                  <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-blue-300' : 'text-blue-800'}`}>
-                    💡 <strong>Tip:</strong> Provide instructor availability details for each course. The system will generate 3 optimized schedule options considering conflicts, room utilization, and preferences.
+                  <Lightbulb className={`w-5 h-5 flex-shrink-0 mt-0.5 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`} strokeWidth={1.75} />
+                  <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-blue-200' : 'text-blue-900'}`}>
+                    <strong>Tip:</strong> Provide instructor availability details for each course. The system will generate 3 optimized schedule options considering conflicts, room utilization, and preferences.
                   </p>
                 </div>
 
@@ -328,26 +634,200 @@ const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, appl
                         </div>
                       </div>
 
-                      <div className="space-y-1.5">
-                        <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'
-                          }`}>
-                          Room Preference (Optional)
-                        </label>
-                        <select
-                          value={slot.roomPreference}
-                          onChange={(e) => updateInstructorSlot(slot.id, 'roomPreference', e.target.value)}
-                          className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none focus:border-transparent transition-all duration-200 ${isDarkMode
-                            ? 'bg-slate-700 border-slate-600 text-white'
-                            : 'bg-white border-slate-200'
-                            }`}
+                      {/* Add Lab Button */}
+                      <div className="pt-3 border-t border-slate-200 dark:border-slate-600">
+                        <button
+                          type="button"
+                          onClick={() => toggleLabPanel(slot.id)}
+                          className={`w-full flex items-center justify-between px-4 py-3 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+                            slot.hasLab
+                              ? 'bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-400'
+                              : isDarkMode
+                                ? 'bg-slate-600 text-slate-200 hover:bg-slate-500 focus:ring-slate-400'
+                                : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 focus:ring-slate-400'
+                          }`}
                         >
-                          <option value="">No Preference</option>
-                          <option value="NAC501">NAC501</option>
-                          <option value="NAC502">NAC502</option>
-                          <option value="LIB603">LIB603</option>
-                          <option value="ENG204">ENG204</option>
-                          <option value="SCI305">SCI305</option>
-                        </select>
+                          <div className="flex items-center gap-2">
+                            <FlaskConical className="w-4 h-4" strokeWidth={1.75} />
+                            <span>{slot.hasLab ? 'Lab Configured' : 'Add Lab'}</span>
+                          </div>
+                          {expandedLabPanels[slot.id] ? (
+                            <ChevronUp className="w-4 h-4" strokeWidth={1.75} />
+                          ) : (
+                            <ChevronDown className="w-4 h-4" strokeWidth={1.75} />
+                          )}
+                        </button>
+
+                        {/* Lab Configuration Panel */}
+                        {expandedLabPanels[slot.id] && (
+                          <div className={`mt-3 p-4 rounded-lg border ${
+                            isDarkMode 
+                              ? 'bg-slate-800/50 border-slate-600' 
+                              : 'bg-white border-slate-200'
+                          }`}>
+                            {/* Enable/Disable Lab Toggle */}
+                            <div className="flex items-center justify-between mb-4">
+                              <label className={`text-sm font-medium ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                                Enable Lab for this Course
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => toggleLabEnabled(slot.id)}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 ${
+                                  slot.hasLab ? 'bg-emerald-600' : isDarkMode ? 'bg-slate-600' : 'bg-slate-300'
+                                }`}
+                              >
+                                <span
+                                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
+                                    slot.hasLab ? 'translate-x-6' : 'translate-x-1'
+                                  }`}
+                                />
+                              </button>
+                            </div>
+
+                            {slot.hasLab && (
+                              <>
+                                {/* Lab Day Selection */}
+                                <div className="space-y-2 mb-4">
+                                  <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                                    Lab Days
+                                  </label>
+                                  
+                                  {/* Double Day Patterns */}
+                                  <div>
+                                    <p className={`text-xs mb-1.5 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Double Day Patterns:</p>
+                                    <div className="grid grid-cols-3 gap-2">
+                                      {labDoubleDays.map(day => (
+                                        <button
+                                          key={day.value}
+                                          type="button"
+                                          onClick={() => toggleLabDaySelection(slot.id, day.value)}
+                                          title={day.label}
+                                          className={`px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+                                            slot.labDays.includes(day.value)
+                                              ? 'bg-emerald-600 text-white shadow-md focus:ring-emerald-400'
+                                              : isDarkMode
+                                                ? 'bg-slate-700 text-slate-300 hover:bg-slate-600 focus:ring-slate-500'
+                                                : 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 focus:ring-slate-400'
+                                          }`}
+                                        >
+                                          {day.value}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Single Days */}
+                                  <div className="mt-2">
+                                    <p className={`text-xs mb-1.5 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Single Days (S+T = ST, M+W = MW, R+A = RA):</p>
+                                    <div className="grid grid-cols-6 gap-2">
+                                      {labSingleDays.map(day => (
+                                        <button
+                                          key={day.value}
+                                          type="button"
+                                          onClick={() => toggleLabDaySelection(slot.id, day.value)}
+                                          title={day.label}
+                                          className={`px-2 py-2 rounded-lg text-xs font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+                                            slot.labDays.includes(day.value)
+                                              ? 'bg-emerald-600 text-white shadow-md focus:ring-emerald-400'
+                                              : isDarkMode
+                                                ? 'bg-slate-700 text-slate-300 hover:bg-slate-600 focus:ring-slate-500'
+                                                : 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 focus:ring-slate-400'
+                                          }`}
+                                        >
+                                          {day.value}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Day Conflict Warning */}
+                                  {getLabDayConflict(slot.labDays) && (
+                                    <div className="mt-2 p-2.5 rounded-lg bg-red-100 dark:bg-red-900/40 border border-red-300 dark:border-red-600 flex items-center gap-2">
+                                      <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0" strokeWidth={2} />
+                                      <p className="text-xs text-red-800 dark:text-red-200 font-medium">
+                                        {getLabDayConflict(slot.labDays)}
+                                      </p>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Show encoded result */}
+                                  {slot.labDays.length > 0 && !getLabDayConflict(slot.labDays) && (
+                                    <div className="mt-2 p-2.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 border border-emerald-300 dark:border-emerald-600 flex items-center gap-2">
+                                      <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" strokeWidth={2} />
+                                      <p className="text-xs text-emerald-800 dark:text-emerald-200 font-medium">
+                                        Lab will be scheduled on: {encodeLabDays(slot.labDays).join(', ')}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Lab Time Slot Selection */}
+                                <div className="space-y-2">
+                                  <label className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                                    Lab Time Slots
+                                  </label>
+                                  <div className="space-y-3">
+                                    {/* 3-hour slots */}
+                                    <div>
+                                      <p className={`text-xs mb-1.5 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>3-Hour Slots:</p>
+                                      <div className="grid grid-cols-1 gap-1.5">
+                                        {labTimeSlots.filter(t => t.duration === '3hr').map(time => (
+                                          <button
+                                            key={time.value}
+                                            type="button"
+                                            onClick={() => toggleLabTimeSelection(slot.id, time.value)}
+                                            className={`px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+                                              slot.labTimes.includes(time.value)
+                                                ? 'bg-emerald-600 text-white shadow-md focus:ring-emerald-400'
+                                                : isDarkMode
+                                                  ? 'bg-slate-700 text-slate-300 hover:bg-slate-600 focus:ring-slate-500'
+                                                  : 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 focus:ring-slate-400'
+                                            }`}
+                                          >
+                                            {time.label}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                    {/* 1.5-hour slots */}
+                                    <div>
+                                      <p className={`text-xs mb-1.5 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>1.5-Hour Slots:</p>
+                                      <div className="grid grid-cols-2 gap-1.5">
+                                        {labTimeSlots.filter(t => t.duration === '1.5hr').map(time => (
+                                          <button
+                                            key={time.value}
+                                            type="button"
+                                            onClick={() => toggleLabTimeSelection(slot.id, time.value)}
+                                            className={`px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+                                              slot.labTimes.includes(time.value)
+                                                ? 'bg-emerald-600 text-white shadow-md focus:ring-emerald-400'
+                                                : isDarkMode
+                                                  ? 'bg-slate-700 text-slate-300 hover:bg-slate-600 focus:ring-slate-500'
+                                                  : 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 focus:ring-slate-400'
+                                            }`}
+                                          >
+                                            {time.label}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Time Conflict Warning */}
+                                  {getLabTimeConflict(slot) && (
+                                    <div className="mt-2 p-2.5 rounded-lg bg-amber-100 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-600 flex items-start gap-2">
+                                      <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" strokeWidth={2} />
+                                      <p className="text-xs text-amber-800 dark:text-amber-200 font-medium">
+                                        {getLabTimeConflict(slot)}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -421,8 +901,9 @@ const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, appl
                           {schedule.classes.length} classes scheduled
                         </p>
                         {schedule.conflict && (
-                          <div className="mt-2 px-3 py-1.5 bg-red-100 text-red-700 text-xs rounded-full inline-block font-semibold border border-red-200">
-                            ⚠️ {schedule.conflictMessage}
+                          <div className="mt-2 px-3 py-1.5 bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200 text-xs rounded-full inline-flex items-center gap-1.5 font-semibold border border-red-300 dark:border-red-600">
+                            <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2} />
+                            {schedule.conflictMessage}
                           </div>
                         )}
 
@@ -450,12 +931,36 @@ const AIScheduleModal = ({ isOpen, closeModal, isDarkMode, addNotification, appl
                       </div>
                       <button
                         onClick={() => handleApplySchedule(schedule)}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-xl font-semibold transition-all duration-200 shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 active:scale-[0.98]"
+                        disabled={isSaving}
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 active:scale-[0.98] ${
+                          isSaving 
+                            ? 'bg-slate-400 cursor-not-allowed text-white' 
+                            : 'bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white'
+                        }`}
                       >
-                        <CheckCircle className="w-4 h-4" strokeWidth={1.75} />
-                        <span>Apply This Schedule</span>
+                        {isSaving ? (
+                          <>
+                            <Loader className="w-4 h-4 animate-spin" strokeWidth={1.75} />
+                            <span>Saving...</span>
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="w-4 h-4" strokeWidth={1.75} />
+                            <span>Apply This Schedule</span>
+                          </>
+                        )}
                       </button>
                     </div>
+
+                    {/* Error message display */}
+                    {saveError && (
+                      <div className={`mt-3 p-3 rounded-lg border ${isDarkMode ? 'bg-red-900/20 border-red-800 text-red-300' : 'bg-red-50 border-red-200 text-red-700'}`}>
+                        <div className="flex items-center gap-2">
+                          <XCircle className="w-4 h-4 flex-shrink-0" strokeWidth={1.75} />
+                          <p className="text-sm font-medium">{saveError}</p>
+                        </div>
+                      </div>
+                    )}
 
                     <div className={`mt-6 rounded-xl overflow-hidden border ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}`}>
                       <table className="w-full text-sm text-left border-collapse">
